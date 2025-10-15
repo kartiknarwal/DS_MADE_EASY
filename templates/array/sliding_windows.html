@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sliding Window Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; font-family: 'Poppins', sans-serif; }
+  body { background: #0D0D0D; color: #E0E0E0; display: flex; flex-direction: column; align-items: center; padding: 20px; gap: 1.5rem; }
+  h1 { color: #00FFAB; text-shadow: 0 0 10px #00FFAB; text-align:center; }
+
+  .panel { background: #1A1A1A; padding: 20px; border-radius: 12px; width: 90%; max-width: 900px; box-shadow: 0 0 15px rgba(0,255,171,0.3); }
+  .formula-box { background: #262626; color:#00FFAB; padding:10px 20px; border-radius:12px; margin-bottom:10px; font-size:1.1rem; text-align:center; }
+  .note-box { color: gold; margin-bottom:10px; font-weight:bold; }
+  .array-container { display:flex; justify-content:center; gap:10px; flex-wrap: wrap; margin: 10px 0; }
+  .box { width:60px; height:60px; display:flex; justify-content:center; align-items:center; font-weight:bold; border-radius:12px; background: #262626; color:#E0E0E0; font-size:1.2rem; box-shadow:0 0 5px rgba(0,255,171,0.3); transition: all 0.3s ease; cursor:default; }
+  .box.highlight-enter { background: #00FFAB; color:#0D0D0D; transform: scale(1.2); box-shadow: 0 0 15px #00FFAB; }
+  .box.highlight-leave { background: #FF0044; color:#0D0D0D; transform: scale(1.1); box-shadow: 0 0 15px #FF0044; }
+  .box.highlight-max { border: 3px solid gold; }
+
+  .controls { display:flex; flex-wrap: wrap; justify-content:center; gap:10px; margin: 10px 0; }
+  input, button { padding:10px 15px; border:none; border-radius:8px; font-size:1rem; }
+  input { background:#262626; color:#E0E0E0; width:80px; text-align:center; }
+  button { background:#00FFAB; color:#0D0D0D; font-weight:bold; cursor:pointer; transition: all 0.3s ease; }
+  button:hover { background:#00FFA0; transform:scale(1.05); }
+
+  .explanation { background: #1A1A1A; padding:15px 20px; border-radius:12px; color:#BFBFBF; font-size:1rem; line-height:1.5; width:90%; max-width:900px; text-align:left; overflow-y:auto; max-height:450px; }
+  hr { border: 0.5px solid #444; margin:5px 0; }
+</style>
+</head>
+<body>
+
+<h1>Sliding Window Visualizer</h1>
+
+<div class="panel">
+  <div class="note-box">Gold border highlights the window with <strong>maximum sum</strong></div>
+  <div class="formula-box" id="formulaBox">Formula: sum = 0</div>
+  <p><strong>Original Array</strong></p>
+  <div class="array-container" id="originalArray"></div>
+</div>
+
+<div class="panel controls">
+  <button id="randomBtn">🎲 Random Array</button>
+  <button id="manualBtn">✏️ Enter Array</button>
+  <input type="number" id="windowSize" value="3" min="1" placeholder="K">
+  <button id="slideBtn">▶️ Slide Window</button>
+  <button id="resetBtn">🔄 Reset</button>
+</div>
+
+<div class="explanation" id="explanation">
+  <h3>📚 What is Sliding Window?</h3>
+  <p>
+    The Sliding Window technique is used to optimize problems involving subarrays or substrings.<br>
+    Instead of recalculating sums or other properties for every possible window (O(n²)), we slide a window across the array and update the value incrementally (O(n)).<br>
+    Think of it like this:
+  </p>
+  <ul>
+    <li>You have a “window” of size <strong>K</strong> moving across a line of numbers.</li>
+    <li>Calculate something (like sum) for the first window.</li>
+    <li>For the next window, instead of recalculating everything:</li>
+    <ul>
+      <li>Subtract the element leaving the window</li>
+      <li>Add the element entering the window</li>
+    </ul>
+  </ul>
+</div>
+
+<script>
+let arr = [];
+let windowPos = 0;
+let currentSum = 0;
+let maxSum = -Infinity;
+let maxPos = -1;
+let stepCounter = 1;
+
+const originalContainer = document.getElementById("originalArray");
+const explanation = document.getElementById("explanation");
+const formulaBox = document.getElementById("formulaBox");
+
+// Render array
+function renderArray() {
+  originalContainer.innerHTML = "";
+  arr.forEach((val, idx) => {
+    const box = document.createElement("div");
+    box.className = "box";
+    box.textContent = val;
+    box.title = `Index ${idx}`;
+    originalContainer.appendChild(box);
+  });
+}
+
+// Random array
+function generateRandomArray(size=8) {
+  arr = Array.from({length:size},()=>Math.floor(Math.random()*10)+1);
+  resetWindow();
+  renderArray();
+}
+
+// Manual array
+function enterManualArray() {
+  const userInput = prompt("Enter numbers separated by commas (e.g., 1,2,3,4):");
+  if(!userInput) return;
+  arr = userInput.split(",").map(Number);
+  resetWindow();
+  renderArray();
+}
+
+// Clear highlights
+function clearHighlights() {
+  document.querySelectorAll(".box").forEach(b => b.classList.remove("highlight-enter","highlight-leave","highlight-max"));
+}
+
+// Sleep helper
+function sleep(ms) { return new Promise(res => setTimeout(res, ms)); }
+
+// Slide window
+async function slideWindow() {
+  const k = parseInt(document.getElementById("windowSize").value);
+  if(isNaN(k) || k<=0 || k>arr.length){
+    explanation.innerHTML += `<p style="color:red;">⚠️ Enter a valid window size (1 ≤ K ≤ ${arr.length})</p>`;
+    return;
+  }
+  if(windowPos + k > arr.length){
+    explanation.innerHTML += `<p style="color:#00FFAB; font-weight:bold;">✅ Reached end of array. Click 🔄 Reset or 🎲 Random Array to practise again.</p>`;
+    return;
+  }
+
+  const boxes = document.querySelectorAll(".box");
+
+  // Remove leaving element
+  if(windowPos>0){
+    boxes[windowPos-1].classList.add("highlight-leave");
+    formulaBox.innerText = `Formula: sum = ${currentSum} - ${arr[windowPos-1]}`;
+    currentSum -= arr[windowPos-1];
+    explanation.innerHTML += `<strong>Step ${stepCounter}:</strong> Subtract leaving arr[${windowPos-1}] = ${arr[windowPos-1]}. Current sum = ${currentSum}<hr>`;
+    stepCounter++;
+    await sleep(700);
+    boxes[windowPos-1].classList.remove("highlight-leave");
+  }
+
+  // Highlight current window
+  for(let i=windowPos; i<windowPos+k; i++){
+    boxes[i].classList.add("highlight-enter");
+    await sleep(400);
+  }
+
+  // Add entering element
+  if(windowPos===0){
+    currentSum = 0;
+    for(let i=0;i<k;i++) currentSum += arr[i];
+  } else {
+    currentSum = currentSum + arr[windowPos+k-1];
+  }
+
+  formulaBox.innerText = windowPos===0 ? 
+    `Formula: sum = ${arr.slice(windowPos,windowPos+k).join(' + ')} = ${currentSum}` :
+    `Formula: sum = previous_sum + ${arr[windowPos+k-1]} = ${currentSum}`;
+
+  if(currentSum>maxSum){ maxSum=currentSum; maxPos=windowPos; }
+
+  explanation.innerHTML += `<strong>Step ${stepCounter}:</strong> Window [${windowPos}-${windowPos+k-1}] sum = ${currentSum}. Max sum so far = ${maxSum} (indices [${maxPos}-${maxPos+k-1}])<hr>`;
+  stepCounter++;
+
+  clearHighlights();
+  for(let i=maxPos;i<maxPos+k;i++) boxes[i].classList.add("highlight-max");
+  for(let i=windowPos;i<windowPos+k;i++) boxes[i].classList.add("highlight-enter");
+
+  await sleep(800);
+  windowPos++;
+
+  if(windowPos + k > arr.length){
+    explanation.innerHTML += `<p style="color:#00FFAB; font-weight:bold;">✅ Reached end of array. Click 🔄 Reset or 🎲 Random Array to practise again.</p>`;
+  } else{
+    explanation.innerHTML += `<p style="color:#00FFAB; font-weight:bold;">➡️ Click 'Slide Window' for next step.</p>`;
+  }
+}
+
+// Reset
+function resetWindow(){
+  windowPos=0; currentSum=0; maxSum=-Infinity; maxPos=-1; stepCounter=1;
+  clearHighlights(); formulaBox.innerText = `Formula: sum = 0`;
+  explanation.innerHTML = `<h3>📚 What is Sliding Window?</h3>
+    <p>The Sliding Window technique is used to optimize problems involving subarrays or substrings.<br>
+    Instead of recalculating sums or other properties for every possible window (O(n²)), we slide a window across the array and update the value incrementally (O(n)).<br>
+    Think of it like this:</p>
+    <ul>
+      <li>You have a “window” of size <strong>K</strong> moving across a line of numbers.</li>
+      <li>Calculate something (like sum) for the first window.</li>
+      <li>For the next window, instead of recalculating everything:</li>
+      <ul>
+        <li>Subtract the element leaving the window</li>
+        <li>Add the element entering the window</li>
+      </ul>
+    </ul>
+    <p style="color:gold; font-weight:bold;">Gold border highlights the window with <strong>maximum sum</strong></p>`;
+}
+
+// Event listeners
+document.getElementById("randomBtn").addEventListener("click", ()=>generateRandomArray());
+document.getElementById("manualBtn").addEventListener("click", enterManualArray);
+document.getElementById("slideBtn").addEventListener("click", slideWindow);
+document.getElementById("resetBtn").addEventListener("click", resetWindow);
+
+// Initialize
+generateRandomArray();
+</script>
+
+</body>
+</html>

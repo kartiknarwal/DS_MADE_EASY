@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Array Visualizer — Neon Dark</title>
+<style>
+:root {
+  --bg: #0d1117;
+  --panel: #161b22;
+  --accent: #ff79c6;
+  --muted: #8b949e;
+  --glow: rgba(255,121,198,0.3);
+  --card-radius: 12px;
+}
+* {box-sizing: border-box;}
+body {
+  margin:0; font-family:sans-serif;
+  background: radial-gradient(circle at 10% 10%, rgba(255,121,198,0.05), transparent),
+              radial-gradient(circle at 90% 90%, rgba(255,121,198,0.02), transparent),
+              var(--bg);
+  color:#c9d1d9; display:flex; flex-direction:column; align-items:center; padding:20px;
+}
+h1 {color:var(--accent); margin-bottom:16px;}
+.wrap {display:grid; grid-template-columns:280px 1fr; gap:16px; width:100%; max-width:1200px;}
+.panel {
+  background:var(--panel); padding:16px; border-radius:var(--card-radius);
+  border:1px solid rgba(255,255,255,0.06); box-shadow:0 4px 20px rgba(0,0,0,0.5);
+}
+.panel .section {margin-bottom:14px;}
+.panel label {font-size:13px; color:var(--muted);}
+.controls {display:flex; gap:8px; flex-wrap:wrap; margin-top:6px;}
+button {padding:8px 12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; transition:.15s;}
+button.primary {background: var(--accent); color:#0d1117;}
+input[type=number]{padding:6px; border-radius:6px; border:1px solid rgba(255,255,255,0.06); background:transparent; color:inherit; width:60px;}
+canvas {border-radius:12px; background:#0b0f14; display:block; width:100%; height:420px;}
+.footer {margin-top:20px; font-size:12px; color:var(--muted);}
+</style>
+</head>
+<body>
+
+<h1>Array Visualizer</h1>
+
+<div class="wrap">
+  <div class="panel">
+    <div class="section">
+      <label>Array Size</label>
+      <select id="sizeSelect">
+        <option>4</option><option>6</option><option selected>10</option><option>12</option><option>16</option>
+      </select>
+      <div style="margin-top:6px;font-size:13px;">Filled: <span id="filledBadge">0</span></div>
+    </div>
+
+    <div class="section">
+      <label>Manual Array Creation</label>
+      <input type="number" id="manualIndex" placeholder="Index">
+      <input type="number" id="manualValue" placeholder="Value">
+      <div class="controls">
+        <button class="primary" id="btnManualInsert">Insert</button>
+        <button id="btnDelete">Delete</button>
+        <button id="btnSearch">Search</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Controls</label>
+      <div class="controls">
+        <button id="btnRandom">Randomize</button>
+        <button id="btnClear">Clear</button>
+        <button id="btnReset">Reset</button>
+      </div>
+    </div>
+
+    <div class="section">
+      <label>Speed</label>
+      <input type="range" min="60" max="900" value="300" id="speedRange">
+    </div>
+  </div>
+
+  <div>
+    <canvas id="vizCanvas"></canvas>
+    <div style="display:flex;gap:12px;margin-top:8px;font-size:13px;">
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#161b22;border-radius:3px;"></div> Empty</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#ff79c6;border-radius:3px;"></div> Filled</div>
+      <div style="display:flex;align-items:center;gap:4px;"><div style="width:12px;height:12px;background:#00fff7;border-radius:3px;"></div> Active</div>
+    </div>
+    <div style="margin-top:6px;font-size:13px;color:#8b949e;" id="statusText">Ready</div>
+  </div>
+</div>
+
+<div class="footer">DSALGO Visualizer • Neon Dark Theme • Fully Interactive</div>
+
+<script>
+const canvas = document.getElementById('vizCanvas');
+const ctx = canvas.getContext('2d');
+let size = +document.getElementById('sizeSelect').value;
+let arr = new Array(size).fill(null);
+let original = arr.slice();
+let nodeRadius = 24;
+let gap = 12;
+let speed = +document.getElementById('speedRange').value;
+let highlightIndex = -1;
+
+function updateFilledBadge(){
+  document.getElementById('filledBadge').innerText = arr.filter(x=>x!==null).length;
+}
+
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+function easeInOut(t){return t<0.5 ? 2*t*t : -1+(4-2*t)*t;}
+
+function render(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const startX=40, midY=200;
+
+  // Draw nodes
+  arr.forEach((val,i)=>{
+    const x = startX + i*(nodeRadius*2+gap);
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(x, midY, nodeRadius,0,Math.PI*2);
+    ctx.fillStyle = (i===highlightIndex)?'#00fff7': (val===null? '#161b22':'#ff79c6');
+    ctx.fill();
+    ctx.closePath();
+    ctx.fillStyle='#fff';
+    ctx.font='bold 16px sans-serif';
+    ctx.textAlign='center';
+    ctx.textBaseline='middle';
+    if(val!==null) ctx.fillText(val,x,midY);
+    ctx.restore();
+  });
+}
+
+// ===== Animation Helpers =====
+async function animateShift(src,dst){
+  const startX = 40 + src*(nodeRadius*2+gap);
+  const endX = 40 + dst*(nodeRadius*2+gap);
+  const y = 200;
+  const val = arr[src];
+  const duration = Math.max(120, speed);
+  const startTime = performance.now();
+  await new Promise(res=>{
+    function step(t){
+      const now = performance.now();
+      let p = (now - startTime)/duration;
+      if(p>1)p=1;
+      const curX = startX + (endX-startX)*easeInOut(p);
+      render();
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(curX, y, nodeRadius,0,Math.PI*2);
+      ctx.fillStyle='#00fff7';
+      ctx.shadowColor='rgba(0,255,247,0.3)';
+      ctx.shadowBlur=12;
+      ctx.fill();
+      ctx.closePath();
+      ctx.fillStyle='#fff';
+      ctx.fillText(val, curX, y);
+      ctx.restore();
+      if(p<1) requestAnimationFrame(step);
+      else res();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+async function insertAt(value,index){
+  if(arr.filter(x=>x!==null).length>=size){alert("Array full"); return;}
+  // floating node animation
+  const yStart = 100;
+  const xTarget = 40 + index*(nodeRadius*2+gap);
+  const duration = Math.max(200,speed);
+  const startTime = performance.now();
+  await new Promise(res=>{
+    function step(t){
+      const now = performance.now();
+      let p = (now-startTime)/duration; if(p>1)p=1;
+      render();
+      ctx.save();
+      const curY = yStart + (200 - yStart)*easeInOut(p);
+      ctx.beginPath();
+      ctx.arc(xTarget, curY, nodeRadius,0,Math.PI*2);
+      ctx.fillStyle='#00fff7';
+      ctx.shadowColor='rgba(0,255,247,0.3)'; ctx.shadowBlur=16;
+      ctx.fill();
+      ctx.closePath();
+      ctx.fillStyle='#fff';
+      ctx.fillText(value,xTarget,curY);
+      ctx.restore();
+      if(p<1) requestAnimationFrame(step);
+      else res();
+    }
+    requestAnimationFrame(step);
+  });
+
+  // shift elements right
+  for(let i=size-2; i>=index; i--){
+    if(arr[i]!==null){
+      await animateShift(i,i+1);
+      arr[i+1]=arr[i]; arr[i]=null;
+    }
+  }
+  arr[index]=value;
+  highlightIndex=index;
+  render();
+  await sleep(300);
+  highlightIndex=-1;
+  updateFilledBadge();
+}
+
+async function deleteAt(index){
+  if(arr[index]===null){alert("Nothing to delete"); return;}
+  highlightIndex=index;
+  render();
+  await sleep(250);
+  for(let i=index+1;i<size;i++){
+    if(arr[i]!==null){
+      await animateShift(i,i-1);
+      arr[i-1]=arr[i]; arr[i]=null;
+    }
+  }
+  arr[size-1]=null;
+  highlightIndex=-1;
+  render();
+  updateFilledBadge();
+}
+
+async function searchValue(val){
+  let found=[];
+  for(let i=0;i<size;i++){
+    highlightIndex=i; render(); await sleep(Math.max(60,speed/2));
+    if(arr[i]==val) found.push(i);
+  }
+  highlightIndex=-1;
+  render();
+  if(found.length) alert("Value found at indices: "+found.join(', '));
+  else alert("Value not found!");
+}
+
+// ===== Event Listeners =====
+document.getElementById('sizeSelect').addEventListener('change', e=>{
+  size=+e.target.value; arr=new Array(size).fill(null); original=arr.slice(); render(); updateFilledBadge();
+});
+document.getElementById('speedRange').addEventListener('input', e=>{speed=+e.target.value;});
+
+document.getElementById('btnManualInsert').addEventListener('click',()=>{
+  const val=+document.getElementById('manualValue').value;
+  const idx=+document.getElementById('manualIndex').value;
+  if(idx>=0 && idx<size) insertAt(val,idx);
+  else alert("Index out of range");
+});
+document.getElementById('btnDelete').addEventListener('click',()=>{
+  const idx=+document.getElementById('manualIndex').value;
+  if(idx>=0 && idx<size) deleteAt(idx);
+  else alert("Index out of range");
+});
+document.getElementById('btnSearch').addEventListener('click',()=>{
+  const val=+document.getElementById('manualValue').value;
+  searchValue(val);
+});
+document.getElementById('btnRandom').addEventListener('click',()=>{
+  arr=Array.from({length:size},()=>Math.floor(Math.random()*99));
+  render(); updateFilledBadge();
+});
+document.getElementById('btnClear').addEventListener('click',()=>{
+  arr=new Array(size).fill(null); render(); updateFilledBadge();
+});
+document.getElementById('btnReset').addEventListener('click',()=>{
+  arr=original.slice(); render(); updateFilledBadge();
+});
+
+// ===== Init =====
+canvas.width=canvas.clientWidth;
+canvas.height=canvas.clientHeight;
+render();
+updateFilledBadge();
+
+</script>
+</body>
+</html>

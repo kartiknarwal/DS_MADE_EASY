@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Array Visualizer — Premium Dark</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #0b0f14;
+    --panel:#0f1720;
+    --muted:#9aa8b2;
+    --accent:#00bcd4;
+    --glass: rgba(255,255,255,0.04);
+    --card-radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial}
+  body{background:
+    radial-gradient(circle at 10% 10%, rgba(0,188,212,0.04), transparent 12%),
+    radial-gradient(circle at 90% 85%, rgba(0,188,212,0.02), transparent 18%),
+    var(--bg);
+    color:#e6eef3;
+    display:flex;flex-direction:column;align-items:center;padding:28px;}
+  h1{margin:0 0 10px;font-size:20px;color:var(--accent);letter-spacing:0.6px}
+  .wrap{width:100%;max-width:1200px;display:grid;grid-template-columns:360px 1fr;gap:22px;align-items:start}
+  /* LEFT PANEL */
+  .panel{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.04);
+    padding:18px;border-radius:var(--card-radius);backdrop-filter:blur(6px);
+    box-shadow:0 8px 30px rgba(0,0,0,0.6);
+  }
+  .panel .section{margin-bottom:16px}
+  label.small{display:block;font-size:12px;color:var(--muted);margin-bottom:8px}
+  .controls{display:flex;flex-wrap:wrap;gap:8px}
+  button.btn{
+    background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+    border:1px solid rgba(255,255,255,0.06);
+    color:#eaf8fb;padding:10px 12px;border-radius:10px;cursor:pointer;font-weight:600;
+    transition:transform .16s ease,box-shadow .16s ease;
+  }
+  button.btn.primary{
+    background: linear-gradient(90deg,var(--accent), #00e5ff);
+    color:#07121a;
+    border: none;
+    box-shadow: 0 8px 22px rgba(0,188,212,0.13), inset 0 -2px 8px rgba(255,255,255,0.05);
+  }
+  button.btn:active{transform:translateY(1px)}
+  .row{display:flex;gap:8px;align-items:center}
+  .muted{color:var(--muted);font-size:13px}
+  input[type=number], select{
+    background:transparent;border:1px solid rgba(255,255,255,0.04);padding:8px;border-radius:8px;color:inherit;
+    min-width:80px
+  }
+  input[type=range]{width:100%}
+  .small-badge{font-size:12px;padding:6px 8px;border-radius:12px;background:rgba(255,255,255,0.02);color:var(--muted)}
+  /* RIGHT: CANVAS CARD */
+  .canvasCard{
+    background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius:var(--card-radius);padding:18px;border:1px solid rgba(255,255,255,0.04);
+    box-shadow:0 8px 40px rgba(0,0,0,0.6);
+  }
+  .canvasHeader{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .canvasSub{color:var(--muted);font-size:13px}
+  canvas{display:block;width:100%;border-radius:10px;background:linear-gradient(180deg,#081015,#0b1116);border:1px solid rgba(255,255,255,0.02)}
+  /* legend */
+  .legend{display:flex;gap:12px;margin-top:10px;flex-wrap:wrap}
+  .legend .item{display:flex;gap:8px;align-items:center;color:var(--muted);font-size:13px}
+  .swatch{width:12px;height:12px;border-radius:3px}
+  .swatch.a{background:#23303a}
+  .swatch.b{background:var(--accent)}
+  .swatch.c{background:#ff6b6b}
+  /* modal overlay inputs */
+  .overlay{position:fixed;inset:0;background:rgba(2,6,10,0.6);display:flex;align-items:center;justify-content:center;z-index:50}
+  .dialog{background:linear-gradient(180deg,#0f1620,#0b1116);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.04);min-width:320px}
+  .dialog h3{margin:0 0 12px;color:var(--accent)} 
+  .dialog .row{margin-bottom:10px}
+  .row .spaced{flex:1}
+  footer{margin-top:22px;color:var(--muted);font-size:13px;text-align:center}
+  @media (max-width:980px){
+    .wrap{grid-template-columns:1fr; padding:0 12px}
+    .panel{order:2}
+    .canvasCard{order:1}
+  }
+</style>
+</head>
+<body>
+  <h1>Array Visualizer</h1>
+  <div class="wrap">
+    <!-- LEFT PANEL -->
+    <div class="panel" aria-hidden="false">
+      <div class="section">
+        <div class="muted">Array size</div>
+        <div class="row" style="margin-top:8px">
+          <select id="sizeSelect">
+           <option>2</option><option>4</option> <option></option>  <option>8</option><option selected>12</option><option>16</option><option>20</option><option>24</option>
+          </select>
+          <div style="flex:1"></div>
+          <div class="small-badge" id="filledBadge">Filled: 0 / 0</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="muted">Controls</div>
+        <div class="controls" style="margin-top:10px">
+          <button class="btn primary" id="btnRandom">Randomize</button>
+          <button class="btn" id="btnClear">Clear</button>
+          <button class="btn" id="btnReset">Reset</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="muted">Operations</div>
+        <div class="controls" style="margin-top:10px">
+          <button class="btn" id="btnInsert">Insert</button>
+          <button class="btn" id="btnDelete">Delete</button>
+          <button class="btn" id="btnSearch">Search</button>
+        </div>
+        <div class="muted" style="margin-top:10px">Speed</div>
+        <div style="margin-top:8px">
+          <input id="speedRange" type="range" min="60" max="900" value="300">
+          <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:13px"><span>Fast</span><span>Slow</span></div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="muted">Appearance</div>
+        <div class="row" style="margin-top:10px">
+          <div class="small-badge">Dark • Neon</div>
+          <div style="flex:1"></div>
+          <div class="small-badge" id="accentBadge">Accent: cyan</div>
+        </div>
+      </div>
+
+      <div style="height:8px"></div>
+      <div class="section muted" style="font-size:13px">
+        Tips: Use <strong>Randomize</strong> to create an array. Then choose Insert/Delete to visualize shifts. Search visually highlights matches.
+      </div>
+    </div>
+
+    <!-- RIGHT: Canvas and legend -->
+    <div class="canvasCard">
+      <div class="canvasHeader">
+        <div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div style="width:10px;height:10px;border-radius:2px;background:var(--accent)"></div>
+            <div style="font-weight:700;color:#cfeff4">Array — Visual Mode</div>
+          </div>
+          <div class="canvasSub">Original, Working array, and Indices — animated</div>
+        </div>
+        <div class="muted" id="statusText">Ready</div>
+      </div>
+
+      <canvas id="vizCanvas" width="900" height="420" aria-label="Array visualizer"></canvas>
+
+      <div class="legend" aria-hidden="true">
+        <div class="item"><span class="swatch a"></span> Empty / Null</div>
+        <div class="item"><span class="swatch b"></span> Filled cell</div>
+        <div class="item"><span class="swatch c"></span> Active / Highlight</div>
+      </div>
+    </div>
+  </div>
+
+  <footer>DSALGO Visualizer • Premium Dark • Built for clarity</footer>
+
+  <!-- Modal Templates -->
+  <template id="insertTpl">
+    <div class="overlay">
+      <div class="dialog" role="dialog" aria-modal="true">
+        <h3>Insert Element</h3>
+        <div class="row">
+          <label class="muted" style="flex:0 0 70px">Index</label>
+          <input id="insIndex" type="number" value="0" min="0" style="flex:1">
+        </div>
+        <div class="row">
+          <label class="muted" style="flex:0 0 70px">Value</label>
+          <input id="insValue" type="number" value="10" style="flex:1">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn" id="insCancel">Cancel</button>
+          <button class="btn primary" id="insSubmit">Insert</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="deleteTpl">
+    <div class="overlay">
+      <div class="dialog" role="dialog" aria-modal="true">
+        <h3>Delete Element</h3>
+        <div class="row">
+          <label class="muted" style="flex:0 0 70px">Index</label>
+          <input id="delIndex" type="number" value="0" min="0" style="flex:1">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn" id="delCancel">Cancel</button>
+          <button class="btn primary" id="delSubmit">Delete</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <template id="searchTpl">
+    <div class="overlay">
+      <div class="dialog" role="dialog" aria-modal="true">
+        <h3>Search Element</h3>
+        <div class="row">
+          <label class="muted" style="flex:0 0 70px">Value</label>
+          <input id="searchValue" type="number" value="10" style="flex:1">
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:12px">
+          <button class="btn" id="searchCancel">Cancel</button>
+          <button class="btn primary" id="searchSubmit">Search</button>
+        </div>
+      </div>
+    </div>
+  </template>
+
+<script>
+/* =========================
+   Core visualizer logic
+   ========================= */
+
+const canvas = document.getElementById('vizCanvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+
+let devicePixelRatioToUse = Math.min(window.devicePixelRatio || 1, 2);
+function resizeCanvasToDisplaySize() {
+  // keep canvas crisp
+  const rect = canvas.getBoundingClientRect();
+  canvas.width = Math.round(rect.width * devicePixelRatioToUse);
+  canvas.height = Math.round(420 * devicePixelRatioToUse);
+  ctx.setTransform(devicePixelRatioToUse,0,0,devicePixelRatioToUse,0,0);
+}
+window.addEventListener('resize', ResizeAndRender);
+
+// Visual & Array state
+let size = +document.getElementById('sizeSelect').value; // number of slots
+let arr = [];           // working array values (string '\0' for empty)
+let original = [];      // original snapshot (copy)
+let animQueue = [];     // queue of animation promises
+let animating = false;
+let speed = +document.getElementById('speedRange').value; // ms per step
+let rectW = 64, rectH = 36, gap = 12;
+let highlightIndex = -1;
+let statusText = document.getElementById('statusText');
+
+function prepareArray(newSize){
+  size = newSize;
+  arr = new Array(size).fill('\0');
+  original = arr.slice();
+  updateFilledBadge();
+}
+
+// helpers
+function randInt(max){ return Math.floor(Math.random() * max) + 1; }
+function updateFilledBadge(){
+  let filled = arr.filter(v => v !== '\0').length;
+  document.getElementById('filledBadge').innerText = `Filled: ${filled} / ${size}`;
+}
+function setStatus(s){ statusText.innerText = s; }
+
+// initial
+prepareArray(size);
+ResizeAndRender();
+render(); // initial draw
+
+/* ============================
+   UI controls & modal handlers
+   ============================ */
+
+document.getElementById('btnRandom').addEventListener('click', ()=>{
+  // fill ~70% slots randomly
+  const fillCount = Math.max(1, Math.floor(size * 0.7));
+  arr = new Array(size).fill('\0');
+  for(let i=0;i<fillCount;i++) arr[i] = randInt(99);
+  original = arr.slice();
+  updateFilledBadge();
+  setStatus('Randomized');
+});
+
+document.getElementById('btnClear').addEventListener('click', ()=> {
+  prepareArray(size);
+  setStatus('Cleared');
+  render();
+});
+
+document.getElementById('btnReset').addEventListener('click', ()=> {
+  arr = original.slice();
+  updateFilledBadge();
+  setStatus('Reset to original');
+  render();
+});
+
+document.getElementById('sizeSelect').addEventListener('change', (e)=>{
+  const newSize = +e.target.value;
+  prepareArray(newSize);
+  // adapt visuals
+  ResizeAndRender();
+  render();
+  setStatus(`Size set to ${newSize}`);
+});
+
+document.getElementById('speedRange').addEventListener('input',(e)=>{
+  speed = +e.target.value;
+  setStatus(`Speed ${speed}ms`);
+});
+
+/* Insert */
+document.getElementById('btnInsert').addEventListener('click', ()=> openModal('insert') );
+document.getElementById('btnDelete').addEventListener('click', ()=> openModal('delete') );
+document.getElementById('btnSearch').addEventListener('click', ()=> openModal('search') );
+
+function openModal(kind){
+  const tpl = document.getElementById(kind+'Tpl');
+  const node = tpl.content.cloneNode(true);
+  document.body.appendChild(node);
+  // connect buttons
+  if(kind === 'insert'){
+    document.getElementById('insCancel').onclick = closeAllOverlays;
+    document.getElementById('insSubmit').onclick = async ()=>{
+      const idx = +document.getElementById('insIndex').value;
+      const val = document.getElementById('insValue').value;
+      if(Number.isNaN(idx) || idx < 0 || idx >= size){ alert('Index out of range'); return; }
+      if(arr.filter(x=>x!=='\0').length >= size){ alert("Array full — can't insert"); return; }
+      closeAllOverlays();
+      await enqueueInsert(val, idx);
+    };
+  } else if(kind === 'delete'){
+    document.getElementById('delCancel').onclick = closeAllOverlays;
+    document.getElementById('delSubmit').onclick = async ()=>{
+      const idx = +document.getElementById('delIndex').value;
+      if(Number.isNaN(idx) || idx < 0 || idx >= size){ alert('Index out of range'); return; }
+      if(arr.filter(x=>x!=='\0').length === 0){ alert("Array empty"); return; }
+      closeAllOverlays();
+      await enqueueDelete(idx);
+    };
+  } else if(kind === 'search'){
+    document.getElementById('searchCancel').onclick = closeAllOverlays;
+    document.getElementById('searchSubmit').onclick = async ()=>{
+      const val = document.getElementById('searchValue').value;
+      closeAllOverlays();
+      await enqueueSearch(val);
+    };
+  }
+}
+
+function closeAllOverlays(){
+  document.querySelectorAll('.overlay').forEach(n=>n.remove());
+}
+
+/* ============================
+   Animation queue & operations
+   ============================ */
+
+function enqueueInsert(value, index){
+  // find first '\0' from left to right to be safe if needed — but we use shifting
+  return pushAnim(async ()=>{
+    setStatus(`Inserting ${value} at index ${index}`);
+    // shift right from last filled pos (or last index-1) to create room
+    const firstEmpty = arr.indexOf('\0');
+    // if no empty, can't
+    if(firstEmpty === -1){ throw new Error("No space"); }
+    // find last filled index (could be firstEmpty-1)
+    let lastFilled = Math.max(-1, arr.map((v,i)=>v!=='\0' ? i : -1).reduce((a,b)=>Math.max(a,b), -1));
+    if(lastFilled < index - 1) {
+      // just place at index (some middle empties exist)
+      arr[index] = value;
+      original = original.slice();
+      updateFilledBadge();
+      render();
+      await sleep(speed);
+      return;
+    }
+    // shift elements right one by one with animation
+    for(let j = lastFilled; j >= index; j--){
+      // animate moving arr[j] -> arr[j+1]
+      await animateShift(j, j+1);
+      arr[j+1] = arr[j];
+      arr[j] = '\0';
+      render();
+      await sleep(Math.max(60, speed/3));
+    }
+    // set value
+    arr[index] = value;
+    updateFilledBadge();
+    render();
+    await sleep(speed);
+  });
+}
+
+function enqueueDelete(index){
+  return pushAnim(async ()=>{
+    setStatus(`Deleting at index ${index}`);
+    if(arr[index] === '\0'){ 
+      // nothing to delete
+      // but we can show a flash
+      highlightOnce(index, '#ff6b6b', 400);
+      await sleep(400);
+      return;
+    }
+    // animate element removed: fade or pop
+    highlightOnce(index, '#ff6b6b', 220);
+    await sleep(220);
+    // shift left from index+1 to end
+    for(let j = index; j < size-1; j++){
+      await animateShift(j+1, j);
+      arr[j] = arr[j+1];
+      arr[j+1] = '\0';
+      render();
+      await sleep(Math.max(60, speed/3));
+    }
+    updateFilledBadge();
+    await sleep(speed);
+  });
+}
+
+function enqueueSearch(value){
+  return pushAnim(async ()=>{
+    setStatus(`Searching for ${value} (linear)`);
+    let found = [];
+    for(let i=0;i<size;i++){
+      highlightIndex = i;
+      render();
+      await sleep(Math.max(60, speed/2));
+      if(String(arr[i]) === String(value) && arr[i] !== '\0') found.push(i);
+    }
+    highlightIndex = -1;
+    if(found.length) {
+      setStatus(`Found ${value} at index(s) ${found.join(', ')}`);
+      // keep highlights for a moment
+      for(let i of found) highlightOnce(i, '#00e5ff', 900);
+      await sleep(900);
+    } else {
+      setStatus(`${value} not found`);
+      await sleep(500);
+    }
+  });
+}
+
+function pushAnim(fn){
+  // queue promises so operations are sequential
+  const p = (async ()=>{
+    animating = true;
+    try{
+      await fn();
+    }catch(err){
+      console.error(err);
+    } finally {
+      animating = false;
+      setStatus('Ready');
+      highlightIndex = -1;
+    }
+  })();
+  animQueue.push(p);
+  // consume queue sequentially
+  if(animQueue.length === 1) {
+    (async function runQueue(){
+      while(animQueue.length){
+        try{ await animQueue[0]; }catch(e){}
+        animQueue.shift();
+      }
+    })();
+  }
+  return p;
+}
+
+/* ============================
+   Animation primitives
+   ============================ */
+
+/** animate shifting from srcIndex -> dstIndex visually */
+function animateShift(srcIndex, dstIndex){
+  // We'll animate a smooth slide of the rectangle's contents from src to dst over time
+  return new Promise(resolve => {
+    const duration = Math.max(120, speed); // ms
+    const start = performance.now();
+    const sX = cellX(srcIndex), dX = cellX(dstIndex);
+    const y = midY();
+    const val = arr[srcIndex];
+    function step(t){
+      const p = Math.min(1, (t - start) / duration);
+      render(); // draw base
+      // draw moving cell on top
+      const curX = sX + (dX - sX) * easeInOutCubic(p);
+      drawCell(curX, y, rectW, rectH, val, '#112a36', '#00bcd4', true);
+      if(p < 1) requestAnimationFrame(step);
+      else resolve();
+    }
+    requestAnimationFrame(step);
+  });
+}
+
+function highlightOnce(i, color, ms=400){
+  // flash color for index i
+  const prev = arr[i];
+  return new Promise(resolve=>{
+    const pick = color;
+    const t0 = performance.now();
+    const dur = ms;
+    function loop(t){
+      const p = Math.min(1,(t - t0)/dur);
+      render(); // base
+      drawCell(cellX(i), midY(), rectW, rectH, arr[i], pick, '#000000', true, 1 - p*0.2);
+      if(p < 1) requestAnimationFrame(loop);
+      else resolve();
+    }
+    requestAnimationFrame(loop);
+  });
+}
+
+/* ============================
+   Drawing helpers
+   ============================ */
+
+function ResizeAndRender(){
+  resizeCanvasToDisplaySize();
+  computeLayout();
+  render();
+}
+
+function computeLayout(){
+  // compute rectangle size based on canvas width and size
+  const w = canvas.getBoundingClientRect().width - 28;
+  // use adaptive cell width
+  rectW = Math.max(48, Math.min(84, Math.floor((w - (size+1)*gap) / size)));
+  rectH = 44;
+  // recalc canvas height (we keep 420 fixed in CSS but internal drawing is scaled)
+}
+
+function midY(){ return 120; } // baseline for working array
+function originalY(){ return 40; }
+function indexY(){ return midY() + 110; }
+function cellX(i){
+  const startX = 18;
+  return startX + i * (rectW + gap);
+}
+
+function drawRoundedRect(x,y,w,h,r=8, fill='#111', stroke=null, shadow=null){
+  ctx.save();
+  if(shadow){
+    ctx.shadowColor = shadow;
+    ctx.shadowBlur = 16;
+    ctx.shadowOffsetY = 6;
+  } else ctx.shadowBlur = 0;
+  roundRect(ctx, x, y, w, h, r);
+  if(fill){ ctx.fillStyle = fill; ctx.fill(); }
+  if(stroke){ ctx.lineWidth = 1; ctx.strokeStyle = stroke; ctx.stroke(); }
+  ctx.restore();
+}
+
+function drawCell(x,y,w,h, value, fill='#111', accent='#00bcd4', showIndex=false, alpha=1){
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  // background
+  drawRoundedRect(x, y - h/2, w, h, 8, fill, 'rgba(255,255,255,0.04)', 'rgba(0,0,0,0.6)');
+  // accent left strip
+  ctx.fillStyle = accent;
+  ctx.fillRect(x + 4, y - h/2 + 4, 6, h - 8);
+  // text value (center)
+  ctx.fillStyle = (String(value) === '\0') ? '#7a8287' : '#e6eef3';
+  ctx.font = '600 15px Inter';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const display = (String(value) === '\0') ? '' : String(value);
+  ctx.fillText(display, x + w/2 + 6, y);
+  // index small at bottom if requested
+  ctx.restore();
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+/* core render: draw three rows */
+function render(){
+  // clear
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  // background gradient (subtle)
+  const g = ctx.createLinearGradient(0,0,0,canvas.height);
+  g.addColorStop(0,'rgba(255,255,255,0.02)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+  // Original row
+  ctx.fillStyle = '#9fb7be';
+  ctx.font = '600 12px Inter';
+  ctx.textAlign = 'left';
+  ctx.fillText('Original Array', 22, originalY() - 24);
+  for(let i=0;i<size;i++){
+    const x = cellX(i);
+    const val = original[i] ?? '\0';
+    const filled = String(val) !== '\0';
+    drawCell(x, originalY(), rectW, rectH, filled?val:'', filled? '#162627': '#152026', filled? '#0ad9ff': '#2b3940');
+  }
+
+  // Working row
+  ctx.fillStyle = '#9fb7be';
+  ctx.font = '600 12px Inter';
+  ctx.fillText('Working Array', 22, midY() - 34);
+  for(let i=0;i<size;i++){
+    const x = cellX(i);
+    const val = arr[i] ?? '\0';
+    const isActive = (i === highlightIndex);
+    const baseColor = (String(val) === '\0')? '#162026': '#12262a';
+    drawCell(x, midY(), rectW, rectH, val, isActive ? '#0b2230' : baseColor, isActive ? '#00e5ff' : '#00bcd4');
+    // draw small index under the cell
+    ctx.fillStyle = '#98aab3';
+    ctx.font = '500 12px Inter';
+    ctx.fillText(String(i), x + rectW/2 + 6, indexY()+8);
+  }
+
+  // Index label
+  ctx.fillStyle = '#9fb7be';
+  ctx.font = '600 12px Inter';
+  ctx.fillText('Index', 22, indexY()+8);
+
+  // border line
+  ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(12, indexY()+36); ctx.lineTo(canvas.width-12, indexY()+36); ctx.stroke();
+}
+
+/* ============================
+   utility: easing & sleep
+   ============================ */
+function sleep(ms){ return new Promise(r => setTimeout(r, ms)); }
+function easeInOutCubic(t){ return t<0.5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2 }
+
+/* ================
+   Search demo
+   ================ */
+/* (already implemented in enqueueSearch) */
+
+/* =========
+   Boot & adapt
+   ========= */
+function init(){
+  computeLayout();
+  render();
+}
+init();
+
+/* handle crisp canvas and initial layout */
+ResizeAndRender();
+
+/* Accessibility: keyboard shortcuts */
+window.addEventListener('keydown', (e)=>{
+  if(e.key === 'r') document.getElementById('btnRandom').click();
+  if(e.key === 'i') openModal('insert');
+  if(e.key === 'd') openModal('delete');
+});
+
+/* end script */
+</script>
+</body>
+</html>

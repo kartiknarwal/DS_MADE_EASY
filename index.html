@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DSAlgoVisualizer</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+
+  <style>
+    /* RESET */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* MAIN THEME */
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* HEADER */
+    .main__heading {
+      background: linear-gradient(90deg, #00ff99, #00b4d8);
+      color: #0f172a;
+      text-align: center;
+      font-weight: 700;
+      font-size: 2rem;
+      padding: 20px;
+      box-shadow: 0 4px 30px rgba(0, 255, 150, 0.3);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .main__heading img {
+      height: 45px;
+      border-radius: 8px;
+    }
+
+    .heading__text {
+      color: #0f172a;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    /* SECTION */
+    .section {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 30px;
+      padding: 50px 20px;
+    }
+
+    /* CARD */
+    .card {
+      width: 320px;
+      background: #1e293b;
+      border: 2px solid rgba(0, 255, 170, 0.3);
+      border-radius: 20px;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: 0 20px 40px rgba(0, 255, 150, 0.3);
+    }
+
+    .card__heading {
+      background: rgba(0, 255, 170, 0.1);
+      padding: 12px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #00ffcc;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .card-img-top-parent {
+      height: 200px;
+      overflow: hidden;
+    }
+
+    .card-img-top {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .card-img-top:hover {
+      transform: scale(1.1);
+    }
+
+    .card-body {
+      padding: 15px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+    }
+
+    .badge {
+      background: #00b4d8;
+      border-radius: 20px;
+      padding: 8px 12px;
+      color: white;
+      font-weight: 600;
+      transition: 0.2s;
+    }
+
+    .badge:hover {
+      background: #00ffcc;
+      color: #0f172a;
+      transform: scale(1.1);
+    }
+
+    /* POPUP */
+    .info__box {
+      background: #1e293b;
+      color: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 650px;
+      margin: auto;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(0, 255, 170, 0.2);
+      transform: translateY(100px);
+      animation: pop 0.4s ease forwards;
+    }
+
+    @keyframes pop {
+      from { opacity: 0; transform: translateY(150px) scale(0.9); }
+      to { opacity: 1; transform: translateY(100px) scale(1); }
+    }
+
+    .cross {
+      position: absolute;
+      top: 20px;
+      right: 30px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #00ffcc;
+      transition: 0.3s;
+    }
+
+    .cross:hover {
+      color: #00b4d8;
+    }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #94a3b8;
+      font-size: 14px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin-top: 50px;
+    }
+  </style>
+</head>
+<body>
+  <div id="main">
+    <div class="main__heading">
+      <a href="https://github.com/jhabarsingh/DSALGO-VISUALIZER" target="_blank">
+        <img src="https://github.com/jhabarsingh/DSALGO-VISUALIZER/blob/main/images/github.png?raw=true" />
+      </a>
+      <b class="heading__text title">DSALGO</b>
+      <span>| Visualize. Learn. Master.</span>
+    </div>
+
+    <div class="section row"></div>
+    <div class="body__bin"></div>
+
+    <footer>
+      © 2025 DSAlgoVisualizer — Built for learners, by learners 💻
+    </footer>
+  </div>
+
+  <script>
+    // Same JS logic as before (unchanged)
+    let sec = document.querySelector('.section');
+    let heading = document.querySelector('.main__heading');
+    let counter = 0;
+
+    document.querySelector(".title").addEventListener("click", () => {
+      if (counter == 10) {
+        if (window.localStorage.getItem("questions")) {
+          window.localStorage.removeItem("questions");
+        } else window.localStorage.setItem("questions", true);
+        window.location.reload();
+      }
+      console.log(counter);
+      counter++;
+    });
+
+    let details = [
+      {
+        heading: 'Time Complexity',
+        image: `images/time_complexity.png`,
+        link: 'templates/time_complexity.html',
+        sub_topics: ['Big Oh', 'Big Omega', 'Big Theta']
+      },
+      {
+        heading: 'Array',
+        image: `images/array.png`,
+        link: 'templates/array.html',
+        sub_topics: [
+          'create',
+          'insert',
+          'delete',
+          'linear search',
+          'prefix sum',
+          'kadane',
+          'sliding windows',
+          'partitioning',
+          'rain water trapping'
+        ]
+      }
+    ];
+
+    if (!localStorage.getItem("counter")) pop_up();
+
+    details.forEach((detail, index) => {
+      let temp = window.localStorage.getItem("questions");
+      if (detail.heading == "Questions" && temp == null) {
+        // skip
+      } else add_card(detail, index);
+    });
+
+    function add_card(details, index) {
+      let card = document.createElement('div');
+      card.classList.add('card');
+      let card_html = `
+        <div class="card__heading">${details.heading}</div>
+        <a href="${details.link}" target="_self" class="card-img-top-parent">
+          <img src="${details.image}" class="card-img-top" alt="${details.heading}">
+        </a>
+        <div class="card-body"></div>
+      `;
+      card.innerHTML = card_html;
+      sec.appendChild(card);
+
+      details.sub_topics.forEach(e => {
+        let card_span = document.createElement('button');
+        card_span.classList.add('badge');
+        card_span.innerText = e.toUpperCase();
+        card.querySelector('.card-body').appendChild(card_span);
+      });
+    }
+
+    function pop_up() {
+      if (+localStorage.getItem("counter") == 1) return;
+      if (+localStorage.getItem("first_time") == 1) {
+        localStorage.setItem("counter", 1);
+      } else localStorage.setItem("first_time", 1);
+
+      if (true && +localStorage.getItem("first_time") == 1) {
+        let cross = document.createElement("span");
+        cross.innerText = "×";
+        cross.classList.add("cross");
+
+        let slider = document.createElement("div");
+        slider.style.position = "fixed";
+        slider.style.top = "0";
+        slider.style.left = "0";
+        slider.style.width = "100vw";
+        slider.style.height = "100vh";
+        slider.style.background = "rgba(0,0,0,0.9)";
+        slider.style.zIndex = "999";
+        slider.style.display = "flex";
+        slider.style.justifyContent = "center";
+        slider.style.alignItems = "flex-start";
+        slider.style.overflowY = "auto";
+
+        let info = document.createElement("div");
+        info.classList.add("info__box");
+        info.innerHTML = `
+          <h2>Welcome to DSAlgoVisualizer 🚀</h2>
+          <img src="https://github.com/jhabarsingh/DSALGO-VISUALIZER/blob/main/logo/logo_2.png?raw=true" 
+               style="width:120px;margin:10px 0;">
+          <p>
+            Learn <b>Data Structures & Algorithms</b> with interactive visualizations and clear explanations.
+            Click on any topic card to explore!
+          </p>
+          <hr>
+          <h5>Topics Covered</h5>
+          ${details.map(d => `<span class='badge'>${d.heading}</span>`).join(' ')}
+        `;
+        slider.appendChild(info);
+        slider.appendChild(cross);
+        document.querySelector('.body__bin').appendChild(slider);
+
+        cross.addEventListener("click", () => {
+          document.querySelector('.body__bin').innerHTML = '';
+        });
+      }
+    }
+  </script>
+</body>
+</html>

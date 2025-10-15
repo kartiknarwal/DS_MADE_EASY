@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rain Water Trapping Visualizer</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0D0D0D;
+    color: #E0E0E0;
+    font-family: 'Poppins', sans-serif;
+    text-align: center;
+    padding: 20px;
+  }
+
+  h1 {
+    color: #00BFFF; /* Changed to blue */
+    margin-bottom: 10px;
+    font-size: 2rem;
+  }
+
+  .subheading {
+    color: #B0B0B0;
+    margin-bottom: 20px;
+    font-size: 1rem;
+  }
+
+  .info-box {
+    background: #1A1A1A;
+    padding: 15px;
+    border-left: 4px solid #00BFFF;
+    border-radius: 8px;
+    max-width: 800px;
+    margin: 10px auto;
+    text-align: left;
+    line-height: 1.5;
+    font-size: 1rem;
+  }
+
+  .array-container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    gap: 8px;
+    height: 350px;
+    margin: 30px 0 10px;
+  }
+
+  .bar {
+    width: 40px;
+    position: relative;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+  }
+
+  .height-bar {
+    background: linear-gradient(180deg, #E0E0E0, #A0A0A0);
+    border-radius: 6px 6px 0 0;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+  }
+
+  .water-bar {
+    background: rgba(0, 191, 255, 0.6);
+    border-radius: 0 0 6px 6px;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    z-index: 1;
+  }
+
+  .bar-value {
+    position: absolute;
+    top: -25px;
+    width: 100%;
+    font-size: 0.9rem;
+    color: #00BFFF; /* changed to blue */
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .current {
+    box-shadow: 0 0 10px #00BFFF;
+    transform: scale(1.05);
+  }
+
+  .controls {
+    margin: 15px 0;
+  }
+
+  .controls button {
+    padding: 10px 15px;
+    margin: 6px;
+    font-size: 1rem;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: #00BFFF; /* blue */
+    color: #0D0D0D;
+    transition: 0.3s;
+  }
+
+  .controls button:hover { background: #0080FF; color: #FFF; }
+
+  .legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    color: #B0B0B0;
+  }
+
+  .legend-color {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+
+  .bar-color { background: #E0E0E0; }
+  .water-color { background: rgba(0,191,255,0.7); }
+  .current-color { background: #00BFFF; box-shadow: 0 0 5px #00BFFF; }
+
+  .explanation {
+    background: #1A1A1A;
+    padding: 15px;
+    border-radius: 8px;
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: left;
+    line-height: 1.5;
+    font-size: 1rem;
+  }
+
+  .highlight {
+    color: #00BFFF;
+    font-weight: bold;
+  }
+
+  .stack-visual {
+    text-align: left;
+    max-width: 800px;
+    margin: 10px auto;
+    background: #1A1A1A;
+    padding: 10px;
+    border-radius: 8px;
+    min-height: 80px;
+  }
+
+  .stack-item {
+    margin: 4px 0;
+    padding: 6px;
+    background: #222;
+    border-left: 3px solid #00BFFF;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body>
+
+<h1>🌧️ Rain Water Trapping Visualizer</h1>
+<div class="subheading">Understand how water gets trapped between bars, step by step</div>
+
+<!-- New info sections added -->
+<div class="info-box">
+  <strong>❓ What is Rain Water Trapping?</strong><br><br>
+  Imagine an array where each number represents the height of a bar. After it rains, water gets trapped in the valleys between taller bars. Our goal is to calculate how much water is trapped overall.
+</div>
+
+<div class="info-box">
+  <strong>💡 Approach (Human-style explanation):</strong><br><br>
+  1️⃣ <b>LeftMax:</b> For each bar, find the tallest bar to its left (including itself).<br>
+  2️⃣ <b>RightMax:</b> For each bar, find the tallest bar to its right (including itself).<br>
+  3️⃣ <b>Water trapped:</b> For each bar, water = min(LeftMax, RightMax) - height of the bar.<br>
+  4️⃣ <b>Total water:</b> Sum up the water above all bars to get total trapped water.<br>
+  This method makes it easy to understand by visualizing the walls on both sides first.
+</div>
+
+<div class="array-container" id="arrayContainer"></div>
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-color bar-color"></div> Bar Height</div>
+  <div class="legend-item"><div class="legend-color water-color"></div> Water Trapped</div>
+  <div class="legend-item"><div class="legend-color current-color"></div> Current Index</div>
+</div>
+
+<div class="controls">
+  <button id="randomBtn">🎲 Random Array</button>
+  <button id="manualBtn">✏️ Enter Array</button>
+  <button id="nextBtn">⏭ Next Step</button>
+  <button id="resetBtn">🔄 Reset</button>
+</div>
+
+<div class="explanation" id="explanation">
+  Click <span class="highlight">Next Step</span> to begin learning how rainwater is trapped between bars.
+</div>
+
+<div class="stack-visual" id="stackVisual">
+  <strong>📘 Step Tracker:</strong>
+</div>
+
+<script>
+// JS remains exactly same
+let arr = [];
+let step = 0;
+let leftMax = [], rightMax = [], water = [];
+let i = 0;
+
+const container = document.getElementById("arrayContainer");
+const explanation = document.getElementById("explanation");
+const stackVisual = document.getElementById("stackVisual");
+
+function renderArray(currentIndex = -1){
+  container.innerHTML = "";
+  arr.forEach((val, idx)=>{
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    if(idx === currentIndex) bar.classList.add("current");
+
+    const valText = document.createElement("div");
+    valText.className = "bar-value";
+    valText.textContent = val;
+    bar.appendChild(valText);
+
+    const heightDiv = document.createElement("div");
+    heightDiv.className = "height-bar";
+    heightDiv.style.height = (val * 25) + "px";
+    bar.appendChild(heightDiv);
+
+    const waterDiv = document.createElement("div");
+    waterDiv.className = "water-bar";
+    waterDiv.style.height = (water[idx] * 25) + "px";
+    bar.appendChild(waterDiv);
+
+    container.appendChild(bar);
+  });
+}
+
+function updateStackVisual(message){
+  const div = document.createElement("div");
+  div.className = "stack-item";
+  div.textContent = message;
+  stackVisual.appendChild(div);
+  stackVisual.scrollTop = stackVisual.scrollHeight;
+}
+
+function randomArray(size=8){
+  arr = Array.from({length:size}, ()=>Math.floor(Math.random()*10)+1);
+  resetState();
+}
+
+function manualArray(){
+  const input = prompt("Enter numbers separated by commas:");
+  if(!input) return;
+  arr = input.split(",").map(Number);
+  resetState();
+}
+
+function resetState(){
+  leftMax = Array(arr.length).fill(0);
+  rightMax = Array(arr.length).fill(0);
+  water = Array(arr.length).fill(0);
+  step = 0;
+  i = 0;
+  stackVisual.innerHTML = "<strong>📘 Step Tracker:</strong>";
+  explanation.innerHTML = "Click <span class='highlight'>Next Step</span> to begin learning how rainwater is trapped between bars.";
+  renderArray();
+}
+
+function nextStep(){
+  if(arr.length === 0) return;
+
+  if(step===0){
+    leftMax[0] = arr[0];
+    updateStackVisual(`LeftMax[0] = ${arr[0]}`);
+    explanation.innerHTML = "👉 <span class='highlight'>Step 1:</span> Start building <b>LeftMax</b> — tallest bar on the left (including itself).";
+    i = 1;
+    step = 1;
+    renderArray(i);
+    return;
+  }
+
+  if(step===1){
+    if(i < arr.length){
+      leftMax[i] = Math.max(leftMax[i-1], arr[i]);
+      updateStackVisual(`LeftMax[${i}] = max(${leftMax[i-1]}, ${arr[i]}) = ${leftMax[i]}`);
+      explanation.innerHTML = `At index ${i}, tallest to the left is ${leftMax[i]}.`;
+      renderArray(i);
+      i++;
+      return;
+    } else {
+      i = arr.length - 2;
+      rightMax[arr.length-1] = arr[arr.length-1];
+      updateStackVisual(`RightMax[last] = ${arr[arr.length-1]}`);
+      explanation.innerHTML = "<span class='highlight'>Step 2:</span> Now calculate <b>RightMax</b> — tallest bar to the right.";
+      step = 2;
+      return;
+    }
+  }
+
+  if(step===2){
+    if(i >= 0){
+      rightMax[i] = Math.max(rightMax[i+1], arr[i]);
+      updateStackVisual(`RightMax[${i}] = max(${rightMax[i+1]}, ${arr[i]}) = ${rightMax[i]}`);
+      explanation.innerHTML = `At index ${i}, tallest to the right is ${rightMax[i]}.`;
+      renderArray(i);
+      i--;
+      return;
+    } else {
+      i = 0;
+      step = 3;
+      explanation.innerHTML = "<span class='highlight'>Step 3:</span> Now calculate trapped water at each index using both LeftMax and RightMax.";
+      return;
+    }
+  }
+
+  if(step===3){
+    if(i < arr.length){
+      const trapped = Math.max(Math.min(leftMax[i], rightMax[i]) - arr[i], 0);
+      water[i] = trapped;
+      updateStackVisual(`Water[${i}] = min(${leftMax[i]}, ${rightMax[i]}) - ${arr[i]} = ${trapped}`);
+      explanation.innerHTML = `At index ${i}, water trapped = ${trapped} unit(s).`;
+      renderArray(i);
+      i++;
+      return;
+    } else {
+      const total = water.reduce((a,b)=>a+b,0);
+      explanation.innerHTML = `✅ <span class='highlight'>Done!</span> Total water trapped = <b>${total}</b> units.`;
+      updateStackVisual(`💧 Total water trapped = ${total}`);
+      step = 4;
+      return;
+    }
+  }
+}
+
+// Event listeners
+document.getElementById("randomBtn").addEventListener("click", ()=>randomArray());
+document.getElementById("manualBtn").addEventListener("click", manualArray);
+document.getElementById("nextBtn").addEventListener("click", nextStep);
+document.getElementById("resetBtn").addEventListener("click", resetState);
+
+// Initialize
+randomArray();
+</script>
+
+</body>
+</html>

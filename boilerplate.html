@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DSA Visualizer - Boilerplate</title>
+  <style>
+    html, * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      text-align: center;
+      background: #fdfcf5;
+      font-family: 'Ubuntu', sans-serif;
+    }
+
+    p.title {
+      padding: 15px 0;
+      font-weight: 700;
+      font-size: 26px;
+      text-transform: uppercase;
+      color: #555;
+      letter-spacing: 1px;
+    }
+
+    .grid {
+      display: block;
+      margin: 0 auto;
+      background: #d2f8d2;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    .controls {
+      margin: 15px 0;
+    }
+
+    button {
+      background: #4caf50;
+      border: none;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin: 5px;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background: #3e8e41;
+    }
+
+  </style>
+</head>
+<body>
+  <p class="title">DSA Visualizer</p>
+
+  <div class="controls">
+    <button id="initBtn">Init</button>
+    <button id="startBtn">Start</button>
+    <button id="resetBtn">Reset</button>
+  </div>
+
+  <canvas class="grid" width="1000" height="500"></canvas>
+
+  <script>
+    // ===== Canvas Setup =====
+    const canvas = document.querySelector("canvas");
+    const ctx = canvas.getContext("2d");
+    const W = canvas.width;
+    const H = canvas.height;
+
+    let arr = [];
+    const barWidth = 20;
+    const delay = 500;
+
+    // ===== Main Functions =====
+    function init() {
+      arr = Array.from({ length: Math.floor(W / barWidth) }, () => Math.random() * H);
+      drawArray();
+    }
+
+    function drawArray(highlight = -1) {
+      ctx.clearRect(0, 0, W, H);
+      arr.forEach((val, i) => {
+        ctx.fillStyle = (i === highlight) ? "tomato" : "steelblue";
+        ctx.fillRect(i * barWidth, H - val, barWidth - 2, val);
+      });
+    }
+
+    async function bubbleSort() {
+      for (let i = 0; i < arr.length; i++) {
+        for (let j = 0; j < arr.length - i - 1; j++) {
+          drawArray(j);
+          if (arr[j] > arr[j + 1]) {
+            [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];
+          }
+          await sleep(delay);
+        }
+      }
+      drawArray();
+    }
+
+    function sleep(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    // ===== Event Listeners =====
+    document.getElementById("initBtn").addEventListener("click", init);
+    document.getElementById("startBtn").addEventListener("click", bubbleSort);
+    document.getElementById("resetBtn").addEventListener("click", () => location.reload());
+
+    // Initialize on load
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Time Complexity — Made Simple</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+        background: #0D0D0D;
+        color: #E0E0E0;
+        line-height: 1.6;
+        padding: 20px;
+    }
+
+    h1, h2, h3 {
+        color: #FF6B00;
+    }
+
+    h1 {
+        font-size: 36px;
+        text-align: center;
+        margin-bottom: 10px;
+        text-shadow: 1px 2px 5px rgba(255,107,0,0.3);
+    }
+
+    h2 {
+        font-size: 28px;
+        margin-bottom: 10px;
+    }
+
+    h3 {
+        font-size: 24px;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        text-align: center;
+        font-size: 18px;
+        margin-bottom: 40px;
+        color: #FF8C32;
+    }
+
+    .card {
+        background: #1A1A1A;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 15px rgba(255,107,0,0.2);
+    }
+
+    .card img {
+        max-width: 100%;
+        margin: 20px 0;
+        border-radius: 8px;
+        box-shadow: 0 0 15px #FF8C32;
+    }
+
+    .highlight {
+        color: #FF6B00;
+        font-weight: 600;
+    }
+
+    p {
+        margin-bottom: 15px;
+        font-size: 18px;
+    }
+
+    ul {
+        margin-left: 20px;
+        list-style: disc;
+        font-size: 18px;
+    }
+
+    code, pre {
+        display: block;
+        background: #1E1E1E;
+        color: #E0E0E0;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(255,107,0,0.3);
+        margin: 20px 0;
+        overflow-x: auto;
+    }
+
+    .section-title {
+        color: #FF6B00;
+        font-size: 26px;
+        margin-bottom: 15px;
+        text-decoration: underline 2px #FF8C32;
+    }
+
+    .summary {
+        background: #111;
+        border-left: 5px solid #FF6B00;
+        padding: 15px 20px;
+        margin: 20px 0;
+        border-radius: 8px;
+    }
+
+    .example {
+        margin: 15px 0;
+        font-size: 18px;
+    }
+
+    .tip {
+        color: #FF8C32;
+        font-weight: 600;
+    }
+
+    .image-center {
+        display: flex;
+        justify-content: center;
+    }
+
+</style>
+</head>
+<body>
+
+<h1>Time Complexity — Made Simple</h1>
+<p class="subtitle">Understand algorithms like you understand daily routines.</p>
+
+<!-- Analogy Section -->
+<div class="card">
+    <h2 class="section-title">Why do we need Time & Space Complexity?</h2>
+    <p>Imagine a civil engineer checking a construction site. He measures <span class="highlight">cement ratio</span>, <span class="highlight">sand ratio</span>, and <span class="highlight">water ratio</span>.  
+    Similarly, a programmer checks a code’s efficiency by measuring <span class="highlight">time</span> and <span class="highlight">space</span>.</p>
+    <div class="image-center">
+        <img src="../images/time_space_complexity.png" alt="time_space_complexity">
+    </div>
+    <p><span class="highlight">Time Complexity</span> tells how long a program takes to run as input grows.<br>
+    <span class="highlight">Space Complexity</span> tells how much memory it uses.</p>
+</div>
+
+<!-- Big-Theta Section -->
+<div class="card">
+    <h2 class="section-title">1️⃣ Big-Θ (Theta) Notation — Exact Growth</h2>
+    <p>Think of Θ as the <span class="tip">exact sandwich</span> for runtime: it’s always between a lower and upper bound when input is large.</p>
+    <div class="example">
+        <p>Example: Linear Search</p>
+        <pre>
+var doLinearSearch = function(array, targetValue) {
+  for (var guess = 0; guess < array.length; guess++) {
+    if (array[guess] === targetValue) return guess;
+  }
+  return -1;
+};
+        </pre>
+    </div>
+    <p>It runs at most <span class="highlight">n</span> times (if value not found). Each iteration does constant work, so total = <span class="highlight">c1*n + c2</span>. We ignore constants and low-order terms → <span class="highlight">Θ(n)</span>.</p>
+    <div class="image-center">
+        <img src="../images/time_thetha.png" alt="theta">
+    </div>
+    <p>Key takeaway: <span class="highlight">Θ(f(n)) = tight bound</span>. It shows growth rate precisely for large inputs.</p>
+</div>
+
+<!-- Big-O Section -->
+<div class="card">
+    <h2 class="section-title">2️⃣ Big-O (O) Notation — Upper Bound</h2>
+    <p>Big-O tells us the <span class="tip">maximum time</span> an algorithm could take. It’s like saying: “It will take at most 1 hour.”</p>
+    <div class="example">
+        <p>Example: Binary Search</p>
+        <pre>
+function binarySearch(arr, target) {
+  let start = 0, end = arr.length-1;
+  while(start <= end) {
+    let mid = Math.floor((start + end)/2);
+    if(arr[mid] === target) return mid;
+    else if(arr[mid] < target) start = mid+1;
+    else end = mid-1;
+  }
+  return -1;
+}
+        </pre>
+    </div>
+    <p>Worst-case runtime = <span class="highlight">O(log n)</span>. It’s an upper limit, not exact.</p>
+    <div class="image-center">
+        <img src="../images/big_oh.png" alt="big-O">
+    </div>
+    <p>Tip: Big-O is useful to say: “Algorithm won’t be slower than this”</p>
+</div>
+
+<!-- Big-Omega Section -->
+<div class="card">
+    <h2 class="section-title">3️⃣ Big-Ω (Omega) Notation — Lower Bound</h2>
+    <p>Big-Ω tells us the <span class="tip">minimum time</span> an algorithm will take. It’s like saying: “It will take at least 10 minutes.”</p>
+    <div class="example">
+        <p>Example: Binary Search</p>
+        <p>Finding target on first guess → <span class="highlight">Ω(1)</span>.</p>
+    </div>
+    <div class="image-center">
+        <img src="../images/big_ohm.png" alt="big-omega">
+    </div>
+    <p>Key takeaway: Big-Ω = best-case scenario. Big-O = worst-case. Θ = exact for large inputs.</p>
+</div>
+
+<!-- Summary Section -->
+<div class="card summary">
+    <h2 class="section-title">Quick Summary</h2>
+    <ul>
+        <li><span class="highlight">Θ(f(n)):</span> Exact growth, tight bound.</li>
+        <li><span class="highlight">O(f(n)):</span> Upper bound, maximum time.</li>
+        <li><span class="highlight">Ω(f(n)):</span> Lower bound, minimum time.</li>
+    </ul>
+</div>
+
+</body>
+</html>

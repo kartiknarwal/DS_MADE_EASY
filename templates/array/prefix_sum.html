@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prefix Sum Visualizer — Learn Step by Step</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Poppins', sans-serif; }
+  body {
+    background-color: #0D0D0D;
+    color: #E0E0E0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 1.5rem;
+  }
+  h1 {
+    color: #FF6B00;
+    text-shadow: 0 0 10px #FF8C32;
+    text-align: center;
+  }
+  .panel {
+    background: #1A1A1A;
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 900px;
+    text-align: center;
+    box-shadow: 0 0 20px rgba(255,107,0,0.2);
+  }
+  .array-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+  .box {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #FF6B00, #FF8C32);
+    color: #0D0D0D;
+    font-size: 1.2rem;
+    box-shadow: 0 0 10px rgba(255,107,0,0.4);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: default;
+  }
+  .box.highlight {
+    background: gold;
+    color: black;
+    transform: scale(1.2);
+    box-shadow: 0 0 20px gold;
+  }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+  input, button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+  input {
+    background: #262626;
+    color: #E0E0E0;
+    width: 80px;
+    text-align: center;
+  }
+  button {
+    background: #FF6B00;
+    color: #0D0D0D;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  button:hover {
+    background: #FF8C32;
+    transform: scale(1.05);
+  }
+  .explanation {
+    background: #1A1A1A;
+    padding: 15px 20px;
+    border-radius: 12px;
+    color: #BFBFBF;
+    font-size: 1rem;
+    line-height: 1.5;
+    width: 90%;
+    max-width: 900px;
+    text-align: left;
+  }
+  .result-box {
+    font-size: 1.2rem;
+    color: #0D0D0D;
+    background: gold;
+    padding: 10px 20px;
+    border-radius: 12px;
+    display: inline-block;
+    margin-top: 10px;
+    font-weight: bold;
+  }
+  .tooltip {
+    font-size: 0.8rem;
+    color: #E0E0E0;
+    text-align: center;
+    margin-top: 5px;
+  }
+</style>
+</head>
+<body>
+
+<h1>Prefix Sum Visualizer</h1>
+
+<div class="panel">
+  <p><strong>Original Array</strong></p>
+  <div class="array-container" id="originalArray"></div>
+
+  <p><strong>Prefix Sum Array</strong></p>
+  <div class="array-container" id="prefixArray"></div>
+</div>
+
+<div class="panel controls">
+  <button id="randomBtn">🎲 Generate Random Array</button>
+  <button id="manualBtn">✏️ Enter Your Array</button>
+  <input type="number" id="from" value="0" min="0" placeholder="L">
+  <input type="number" id="to" value="3" min="1" placeholder="R">
+  <button id="queryBtn">🔍 Prefix Query</button>
+</div>
+
+<!-- <div class="explanation" id="explanation">
+  <strong>How it works:</strong><br>
+  The <strong>prefix sum</strong> array stores cumulative sums of the original array.<br>
+  <strong>prefix[i]</strong> = sum of elements from index <strong>0</strong> to <strong>i-1</strong>.<br>
+  Formula to calculate sum of range <strong>[L, R]</strong>:
+  <br>
+  <code>sum = prefix[R+1] - prefix[L]</code>
+</div> -->
+
+<div class="explanation" id="explanation">
+  <h3>📚 How Prefix Sum Works</h3>
+  <p>
+    Prefix Sum helps us calculate the sum of any subarray <strong>[L, R]</strong> in <strong>O(1)</strong> time.
+    Instead of summing elements each time, we precompute cumulative sums in an array called <strong>prefix</strong>.
+  </p>
+  <p>✨ Formula:</p>
+  <ul>
+    <li>prefix[i] = arr[0] + arr[1] + ... + arr[i-1]</li>
+    <li>Sum of range [L, R] = prefix[R+1] - prefix[L]</li>
+  </ul>
+  <p>🎯 Example:</p>
+  <ul>
+    <li>arr = [2, 5, 3, 7]</li>
+    <li>prefix = [0, 2, 7, 10, 17]</li>
+    <li>Sum of [1, 3] = prefix[4] - prefix[1] = 17 - 2 = 15</li>
+  </ul>
+  <p>💡 Tips for Beginners:</p>
+  <ul>
+    <li>Use prefix sums to quickly answer multiple sum queries.</li>
+    <li>Remember the extra 0 at the start of prefix array.</li>
+    <li>This technique is widely used in competitive programming & real-world analytics.</li>
+  </ul>
+  <p>⚡ Interactive Notes:</p>
+  <ul>
+    <li>Try generating random arrays and see how prefix array is built step by step.</li>
+    <li>Enter different ranges [L, R] to see how sum changes instantly!</li>
+  </ul>
+</div>
+
+<script>
+let arr = [];
+let prefix = [];
+
+const originalContainer = document.getElementById("originalArray");
+const prefixContainer = document.getElementById("prefixArray");
+const explanation = document.getElementById("explanation");
+
+function renderArray(container, array) {
+  container.innerHTML = "";
+  array.forEach((val, idx) => {
+    const box = document.createElement("div");
+    box.className = "box";
+    box.textContent = val;
+    box.title = `Index ${idx}`;
+    container.appendChild(box);
+  });
+}
+
+function generateRandomArray(size = 8) {
+  arr = Array.from({ length: size }, () => Math.floor(Math.random() * 10) + 1);
+  prefix = [0];
+  for (let i = 0; i < arr.length; i++) {
+    prefix.push(prefix[i] + arr[i]);
+  }
+  renderArray(originalContainer, arr);
+  renderArray(prefixContainer, prefix);
+  explanation.innerHTML = `
+    ✅ Generated new random array.<br>
+    <strong>Prefix sum</strong> array is calculated as:<br>
+    prefix[i] = sum of arr[0] to arr[i-1]<br>
+    Now enter a range [L, R] and click <strong>Prefix Query</strong>.
+  `;
+}
+
+function enterManualArray() {
+  let userInput = prompt("Enter numbers separated by commas (e.g., 1,2,3,4):");
+  if(!userInput) return;
+  arr = userInput.split(",").map(Number);
+  prefix = [0];
+  for (let i = 0; i < arr.length; i++) {
+    prefix.push(prefix[i] + arr[i]);
+  }
+  renderArray(originalContainer, arr);
+  renderArray(prefixContainer, prefix);
+  explanation.innerHTML = `
+    ✏️ You entered a custom array.<br>
+    Prefix sum array is:<br>
+    prefix[i] = sum of arr[0] to arr[i-1]<br>
+    Enter a range [L, R] and click <strong>Prefix Query</strong>.
+  `;
+}
+
+async function highlightRange(l, r) {
+  const boxes = document.querySelectorAll("#originalArray .box");
+  for (let i = l; i <= r; i++) {
+    boxes[i].classList.add("highlight");
+    // Update explanation dynamically for each element
+    explanation.innerHTML = `
+      🔹 Highlighting element at index <strong>${i}</strong>: ${arr[i]}<br>
+      Continue highlighting range [${l}, ${r}]...
+    `;
+    await new Promise(res => setTimeout(res, 400));
+  }
+}
+
+function clearHighlights() {
+  document.querySelectorAll(".box").forEach(b => b.classList.remove("highlight"));
+}
+
+async function performQuery() {
+  clearHighlights();
+  let l = parseInt(document.getElementById("from").value);
+  let r = parseInt(document.getElementById("to").value);
+
+  if (isNaN(l) || isNaN(r) || l < 0 || r >= arr.length || l > r) {
+    explanation.innerHTML = `<span style="color:red;">⚠️ Invalid range. Please enter valid indices (0 ≤ L ≤ R &lt; n).</span>`;
+    return;
+  }
+
+  await highlightRange(l, r); // explanation updated inside highlightRange
+
+  let result = prefix[r + 1] - prefix[l];
+  explanation.innerHTML = `
+    <strong>Query [${l}, ${r}]</strong><br>
+    Formula: prefix[${r + 1}] - prefix[${l}] = ${prefix[r + 1]} - ${prefix[l]}<br>
+    <div class="result-box">Sum = ${result}</div>
+  `;
+}
+
+// Event listeners
+document.getElementById("randomBtn").addEventListener("click", () => generateRandomArray());
+document.getElementById("manualBtn").addEventListener("click", enterManualArray);
+document.getElementById("queryBtn").addEventListener("click", performQuery);
+
+// Initialize
+generateRandomArray();
+</script>
+</body>
+</html>

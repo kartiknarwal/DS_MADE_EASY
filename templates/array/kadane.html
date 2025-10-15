@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kadane's Algorithm — Rising Tower</title>
+<style>
+body {
+  background: #0a0a23; color:#fff; font-family:'Poppins',sans-serif;
+  display:flex; flex-direction:column; align-items:center; padding:20px;
+}
+h1 { color:#00FF7F; margin-bottom:15px; }
+
+#canvasContainer { position:relative; width:100%; max-width:1000px; height:400px; background:#111133; border-radius:15px; display:flex; align-items:flex-end; padding-bottom:10px; margin-bottom:15px; }
+
+canvas { width:100%; height:100%; border-radius:15px; }
+
+.controls { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+
+button { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; transition:0.15s; }
+
+button.primary { background: #FFD700; color:#0a0a23; }
+
+input[type=number] { width:60px; padding:6px 8px; border-radius:6px; border:none; text-align:center; font-weight:600; background:#222244; color:#fff; }
+
+#statusLog { max-height:250px; width:100%; max-width:1000px; overflow-y:auto; background:#222244; border-radius:10px; padding:10px; font-size:14px; color:#fff; margin-bottom:15px; }
+
+.statusStep { margin-bottom:6px; }
+.statusStep span.index { font-weight:bold; color:#1E90FF; }
+.statusStep span.sum { font-weight:bold; color:#FFD700; }
+</style>
+</head>
+<body>
+
+<h1>Kadane's Algorithm — Rising Tower Animation</h1>
+
+<div id="canvasContainer">
+  <canvas id="vizCanvas"></canvas>
+</div>
+
+<div class="controls">
+  <input type="number" id="manual0" placeholder="0">
+  <input type="number" id="manual1" placeholder="0">
+  <input type="number" id="manual2" placeholder="0">
+  <input type="number" id="manual3" placeholder="0">
+  <input type="number" id="manual4" placeholder="0">
+  <input type="number" id="manual5" placeholder="0">
+  <input type="number" id="manual6" placeholder="0">
+  <input type="number" id="manual7" placeholder="0">
+  <button id="btnSetArray">Set Array</button>
+</div>
+
+<div class="controls">
+  <button class="primary" id="btnRun">Run Kadane</button>
+  <button id="btnRandom">Random Array</button>
+  <button id="btnClear">Clear</button>
+</div>
+
+<div id="statusLog"></div>
+
+<script>
+const canvas = document.getElementById('vizCanvas');
+const ctx = canvas.getContext('2d');
+let size = 8;
+let arr = [];
+let speed = 500;
+canvas.width = canvas.clientWidth;
+canvas.height = canvas.clientHeight;
+const statusLog = document.getElementById('statusLog');
+
+function logStep(text){
+  const div = document.createElement('div');
+  div.className = 'statusStep';
+  div.innerHTML = text;
+  statusLog.appendChild(div);
+  statusLog.scrollTop = statusLog.scrollHeight;
+}
+
+function drawArray(current=-1, bestStart=-1, bestEnd=-1, currentStart=-1, heights=null, fallingBlocks=null){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  const w = canvas.width/size - 12;
+  const baseY = canvas.height - 20;
+
+  for(let i=0;i<size;i++){
+    const h = heights ? heights[i] : Math.max(0, arr[i]/20*canvas.height*0.6);
+    let y = baseY - h;
+    let color = '#1E90FF';
+    if(fallingBlocks && fallingBlocks.includes(i)) color = '#FF4500';
+    if(i>=bestStart && i<=bestEnd) color = '#00FF7F';
+    if(i>=currentStart && i<=current) color = '#FFD700';
+    ctx.fillStyle = color;
+    ctx.shadowColor = ctx.fillStyle;
+    ctx.shadowBlur = 8;
+    ctx.fillRect(i*(w+12)+6, y, w, h);
+    ctx.fillStyle = '#fff';
+    ctx.font = '16px Poppins';
+    ctx.textAlign = 'center';
+    ctx.fillText(arr[i], i*(w+12)+6 + w/2, y-10);
+  }
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function animateRising(targetHeights,current,bestStart,bestEnd,currentStart,fallingBlocks=[]){
+  const steps = 12;
+  let heights = new Array(size).fill(0);
+  for(let s=1; s<=steps; s++){
+    for(let i=0;i<size;i++){
+      heights[i] = heights[i] + (targetHeights[i]-heights[i])/ (steps-s+1);
+    }
+    drawArray(current,bestStart,bestEnd,currentStart,heights,fallingBlocks);
+    await sleep(speed/steps);
+  }
+}
+
+async function runKadane(){
+  logStep("Starting Kadane's Algorithm: Stack positive blocks. Remove negative ones like dropping heavy items.");
+  let maxSoFar = -Infinity;
+  let maxEndingHere = 0;
+  let start=0, tempStart=0, end=0;
+  let falling = [];
+
+  for(let i=0;i<size;i++){
+    maxEndingHere += arr[i];
+
+    if(maxEndingHere < arr[i]){
+      falling = [];
+      for(let k=tempStart;k<i;k++) falling.push(k);
+      await animateRising(arr.map(v=>0),i,start,end,tempStart,falling);
+      maxEndingHere = arr[i];
+      tempStart = i;
+      logStep(`Index <span class="index">${i}</span>: ${arr[i]} alone is better. Previous blocks fall off.`);
+    } else {
+      logStep(`Index <span class="index">${i}</span>: Add ${arr[i]} to current tower. Total now = <span class="sum">${maxEndingHere}</span>`);
+    }
+
+    if(maxEndingHere > maxSoFar){
+      maxSoFar = maxEndingHere;
+      start = tempStart;
+      end = i;
+      logStep(`New tallest tower! Sum=<span class="sum">${maxSoFar}</span>, indices [${start}-${end}]`);
+    }
+
+    const targetHeights = arr.map((val,idx)=>{
+      if(idx<tempStart) return 0;
+      if(idx<=i) return val/20*canvas.height*0.6;
+      return 0;
+    });
+    await animateRising(targetHeights,i,start,end,tempStart,falling);
+    falling = [];
+  }
+
+  logStep(`Done! Max sum = <span class="sum">${maxSoFar}</span>, subarray = [${arr.slice(start,end+1).join(', ')}]`);
+}
+
+document.getElementById('btnRun').addEventListener('click', ()=> runKadane());
+document.getElementById('btnRandom').addEventListener('click', ()=> initArray());
+document.getElementById('btnClear').addEventListener('click', ()=>{
+  arr = Array(size).fill(0);
+  for(let i=0;i<size;i++) document.getElementById('manual'+i).value = "";
+  drawArray(); statusLog.innerHTML = "";
+});
+
+document.getElementById('btnSetArray').addEventListener('click', ()=>{
+  arr = [];
+  for(let i=0;i<size;i++){
+    const val = parseInt(document.getElementById('manual'+i).value);
+    arr.push(isNaN(val)?0:val);
+  }
+  drawArray(); statusLog.innerHTML = ""; logStep("Array set manually. Ready to run Kadane!");
+});
+
+function initArray(){
+  arr = [];
+  for(let i=0;i<size;i++){
+    arr.push(Math.floor(Math.random()*21-10));
+    document.getElementById('manual'+i).value = arr[i];
+  }
+  drawArray(); statusLog.innerHTML = ""; logStep("Random array created. Ready to run Kadane!");
+}
+
+initArray();
+</script>
+
+</body>
+</html>

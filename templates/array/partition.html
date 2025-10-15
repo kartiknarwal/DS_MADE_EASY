@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickSort Visual Learning Tool</title>
+<style>
+  * { box-sizing: border-box; margin:0; padding:0; font-family:'Poppins',sans-serif; }
+  body { background:#0D0D0D; color:#E0E0E0; display:flex; flex-direction:column; align-items:center; padding:20px; gap:1.5rem; }
+  h1 { color:#FF6B00; text-shadow:0 0 10px #FF8C32; text-align:center; }
+
+  .panel { background:#1A1A1A; padding:20px; border-radius:14px; width:90%; max-width:1000px; box-shadow:0 0 15px rgba(255,107,0,0.3); }
+
+  .info-box { background:#262626; color:#FF8C32; padding:10px 20px; border-radius:12px; margin-bottom:10px; font-size:1.1rem; text-align:center; }
+
+  .array-container { display:flex; justify-content:center; gap:10px; flex-wrap:wrap; margin:10px 0; }
+
+  .box { width:60px; height:60px; display:flex; justify-content:center; align-items:center; font-weight:bold; border-radius:12px; background:#262626; color:#E0E0E0; font-size:1.2rem; box-shadow:0 0 5px rgba(255,107,0,0.3); transition: all 0.3s ease; cursor:default; }
+  .pivot { border:3px solid purple; color:#FFD700; }
+  .i { border:3px solid orange; }
+  .j { border:3px solid cyan; }
+  .sorted { border:3px solid #2ecc71; background:#244a2c; color:#FFF; }
+  .current-subarray { background:#333; }
+
+  .controls { display:flex; flex-wrap:wrap; justify-content:center; gap:10px; margin: 10px 0; }
+  input, button { padding:10px 15px; border:none; border-radius:8px; font-size:1rem; }
+  input { background:#262626; color:#E0E0E0; width:80px; text-align:center; }
+  button { background:#FF6B00; color:#0D0D0D; font-weight:bold; cursor:pointer; transition: all 0.3s ease; }
+  button:hover { background:#FF8C32; transform:scale(1.05); }
+
+  .explanation { background:#1A1A1A; padding:15px 20px; border-radius:12px; color:#BFBFBF; font-size:1rem; line-height:1.5; width:90%; max-width:1000px; text-align:left; overflow-y:auto; max-height:450px; }
+  .step { border-left:4px solid #FF6B00; padding:8px 15px; margin:10px 0; background:#111; border-radius:6px; animation: fadeIn 0.4s ease; }
+  .step-number { color:#FF8C32; font-weight:bold; }
+
+  .stack-visual { background:#1A1A1A; padding:10px 15px; border-radius:12px; color:#BFBFBF; margin-top:10px; max-height:200px; overflow-y:auto; }
+  .stack-item { margin:3px 0; padding:5px; background:#444; border-radius:4px; }
+
+  @keyframes fadeIn { from {opacity:0; transform:translateY(10px);} to {opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<h1>🧩 QuickSort Visual Learning Tool</h1>
+
+<div class="panel info-box">
+  💡 QuickSort uses <b>divide & conquer</b>: it picks a <span style="color:#FFD700;">pivot</span>, partitions the array so smaller elements go left, and larger go right — then recursively sorts both halves.
+</div>
+
+<div class="panel">
+  <div class="array-container" id="arrayContainer"></div>
+  <div class="controls">
+    <button id="randomBtn">🎲 Random Array</button>
+    <button id="manualBtn">✏️ Enter Array</button>
+    <button id="nextBtn">▶️ Next Step</button>
+    <button id="resetBtn">🔄 Reset</button>
+  </div>
+</div>
+
+<div class="panel stack-visual" id="stackVisual">
+  <strong>🧠 Recursion Stack:</strong>
+</div>
+
+<div class="panel explanation" id="explanation">
+  <div class="step"><div class="step-number">Intro:</div> Press <b>“Next Step”</b> to begin sorting. Each step will explain what’s happening in simple language.</div>
+</div>
+
+<script>
+let arr = [];
+let stack = [];
+let stepState = "start";
+let i = 0, j = 0, pivotIndex = 0, low=0, high=0, pivotPos=0;
+let stepCount = 1;
+
+const container = document.getElementById("arrayContainer");
+const explanation = document.getElementById("explanation");
+const stackVisual = document.getElementById("stackVisual");
+
+function renderArray(currentLow=null,currentHigh=null){
+  container.innerHTML = "";
+  arr.forEach((val, idx) => {
+    const box = document.createElement("div");
+    box.className = "box";
+    box.textContent = val;
+    if(idx >= currentLow && idx <= currentHigh && currentLow!==null) box.classList.add("current-subarray");
+    if(idx === pivotIndex && stepState !== "done") box.classList.add("pivot");
+    if(idx === i && stepState === "compare") box.classList.add("i");
+    if(idx === j && stepState === "compare") box.classList.add("j");
+    container.appendChild(box);
+  });
+}
+
+function updateStackVisual(){
+  stackVisual.innerHTML = "<strong>🧠 Recursion Stack:</strong>";
+  stack.slice().reverse().forEach(item=>{
+    const div = document.createElement("div");
+    div.className = "stack-item";
+    div.textContent = `[${item.low}-${item.high}]`;
+    stackVisual.appendChild(div);
+  });
+}
+
+function addExplanation(text){
+  const div = document.createElement("div");
+  div.className = "step";
+  div.innerHTML = `<div class='step-number'>Step ${stepCount++}:</div> ${text}`;
+  explanation.appendChild(div);
+  explanation.scrollTop = explanation.scrollHeight;
+}
+
+function randomArray(size=8){
+  arr = Array.from({length:size},()=>Math.floor(Math.random()*20)+1);
+  resetState();
+}
+
+function manualArray(){
+  const input = prompt("Enter numbers separated by commas:");
+  if(!input) return;
+  arr = input.split(",").map(Number);
+  resetState();
+}
+
+function resetState(){
+  stack = [];
+  if(arr.length>0) stack.push({low:0,high:arr.length-1});
+  stepState="start"; i=0; j=0; pivotIndex=0; pivotPos=0; stepCount=1;
+  explanation.innerHTML = "";
+  addExplanation("New QuickSort session started. Click “Next Step” to begin sorting.");
+  renderArray();
+  updateStackVisual();
+}
+
+async function nextStep(){
+  if(stack.length===0){
+    addExplanation(`✅ QuickSort complete! Array fully sorted: [${arr.join(", ")}]`);
+    renderArray();
+    return;
+  }
+
+  let current = stack[stack.length-1];
+  low = current.low; high = current.high;
+  pivotIndex = high;
+
+  if(stepState==="start"){
+    i = low; j = low;
+    stepState = "compare";
+    addExplanation(`Starting new partition on subarray [${low}-${high}]. Pivot chosen = <b>${arr[pivotIndex]}</b>.`);
+    renderArray(low,high);
+    updateStackVisual();
+    return;
+  }
+
+  if(stepState==="compare"){
+    if(j < high){
+      addExplanation(`Comparing arr[${j}] = ${arr[j]} with pivot = ${arr[pivotIndex]}.`);
+      if(arr[j] <= arr[pivotIndex]){
+        addExplanation(`Since ${arr[j]} ≤ pivot, swap arr[${i}] (${arr[i]}) and arr[${j}] (${arr[j]}).`);
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+        i++;
+      } else {
+        addExplanation(`${arr[j]} > pivot, so we just move j forward.`);
+      }
+      j++;
+      renderArray(low,high);
+      updateStackVisual();
+      return;
+    } else {
+      stepState = "placePivot";
+    }
+  }
+
+  if(stepState==="placePivot"){
+    addExplanation(`All comparisons done. Place pivot (${arr[pivotIndex]}) at its correct position (index ${i}).`);
+    [arr[i], arr[pivotIndex]] = [arr[pivotIndex], arr[i]];
+    pivotPos = i;
+    stepState="done";
+    renderArray(low,high);
+    updateStackVisual();
+    return;
+  }
+
+  if(stepState==="done"){
+    addExplanation(`Pivot ${arr[pivotPos]} placed correctly. Left subarray = [${low}-${pivotPos-1}], Right subarray = [${pivotPos+1}-${high}].`);
+    let leftLow = low, leftHigh = pivotPos-1;
+    let rightLow = pivotPos+1, rightHigh = high;
+    stack.pop();
+    if(rightLow < rightHigh) stack.push({low:rightLow,high:rightHigh});
+    if(leftLow < leftHigh) stack.push({low:leftLow,high:leftHigh});
+    stepState="start";
+    renderArray();
+    updateStackVisual();
+    return;
+  }
+}
+
+// Event Listeners
+document.getElementById("randomBtn").addEventListener("click", ()=>randomArray());
+document.getElementById("manualBtn").addEventListener("click", manualArray);
+document.getElementById("nextBtn").addEventListener("click", ()=>nextStep());
+document.getElementById("resetBtn").addEventListener("click", resetState);
+
+// Initialize
+randomArray();
+</script>
+</body>
+</html>
