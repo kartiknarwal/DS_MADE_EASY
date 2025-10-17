@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Time Complexity — Made Simple</title>
+<title>Time Complexity — Made Super Easy</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
     * {
@@ -17,7 +17,7 @@
         background: #0D0D0D;
         color: #E0E0E0;
         line-height: 1.6;
-        padding: 20px;
+        padding: 25px;
     }
 
     h1, h2, h3 {
@@ -25,20 +25,10 @@
     }
 
     h1 {
-        font-size: 36px;
+        font-size: 38px;
         text-align: center;
         margin-bottom: 10px;
-        text-shadow: 1px 2px 5px rgba(255,107,0,0.3);
-    }
-
-    h2 {
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-
-    h3 {
-        font-size: 24px;
-        margin-bottom: 8px;
+        text-shadow: 1px 2px 6px rgba(255,107,0,0.4);
     }
 
     .subtitle {
@@ -50,22 +40,16 @@
 
     .card {
         background: #1A1A1A;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 30px;
-        box-shadow: 0 4px 15px rgba(255,107,0,0.2);
+        border-radius: 14px;
+        padding: 25px;
+        margin-bottom: 35px;
+        box-shadow: 0 5px 15px rgba(255,107,0,0.2);
+        transition: transform 0.2s ease, box-shadow 0.3s ease;
     }
 
-    .card img {
-        max-width: 100%;
-        margin: 20px 0;
-        border-radius: 8px;
-        box-shadow: 0 0 15px #FF8C32;
-    }
-
-    .highlight {
-        color: #FF6B00;
-        font-weight: 600;
+    .card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(255,140,50,0.35);
     }
 
     p {
@@ -74,7 +58,7 @@
     }
 
     ul {
-        margin-left: 20px;
+        margin-left: 25px;
         list-style: disc;
         font-size: 18px;
     }
@@ -97,17 +81,9 @@
         text-decoration: underline 2px #FF8C32;
     }
 
-    .summary {
-        background: #111;
-        border-left: 5px solid #FF6B00;
-        padding: 15px 20px;
-        margin: 20px 0;
-        border-radius: 8px;
-    }
-
-    .example {
-        margin: 15px 0;
-        font-size: 18px;
+    .highlight {
+        color: #FF6B00;
+        font-weight: 600;
     }
 
     .tip {
@@ -118,98 +94,174 @@
     .image-center {
         display: flex;
         justify-content: center;
+        align-items: center;
+        margin: 20px 0;
+    }
+
+    .image-center img {
+        width: 80%;
+        max-width: 450px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(255,140,50,0.4);
+        transition: transform 0.3s ease;
+    }
+
+    .image-center img:hover {
+        transform: scale(1.05);
+    }
+
+    .summary {
+        background: #111;
+        border-left: 5px solid #FF6B00;
+        padding: 20px 25px;
+        border-radius: 10px;
+    }
+
+    .funfact {
+        background: #141414;
+        border-left: 4px solid #FF8C32;
+        padding: 15px 20px;
+        margin-top: 15px;
+        border-radius: 10px;
+        font-size: 17px;
+        color: #FFD9B3;
+    }
+
+    .trythis {
+        background: #181818;
+        border-left: 4px solid #FF6B00;
+        padding: 15px 20px;
+        margin-top: 20px;
+        border-radius: 10px;
+        font-size: 17px;
+        color: #E0E0E0;
+    }
+
+    .trythis p {
+        color: #E0E0E0;
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 40px;
+        font-size: 16px;
+        color: #FF8C32;
+        opacity: 0.8;
     }
 
 </style>
 </head>
 <body>
 
-<h1>Time Complexity — Made Simple</h1>
-<p class="subtitle">Understand algorithms like you understand daily routines.</p>
+<h1>Time Complexity — Made Super Easy</h1>
+<p class="subtitle">Learn it like you learn your daily habits 🧠</p>
 
-<!-- Analogy Section -->
+<!-- Introduction -->
 <div class="card">
     <h2 class="section-title">Why do we need Time & Space Complexity?</h2>
-    <p>Imagine a civil engineer checking a construction site. He measures <span class="highlight">cement ratio</span>, <span class="highlight">sand ratio</span>, and <span class="highlight">water ratio</span>.  
-    Similarly, a programmer checks a code’s efficiency by measuring <span class="highlight">time</span> and <span class="highlight">space</span>.</p>
+    <p>Imagine your friend Rahul building a LEGO tower. He measures <span class="highlight">how long</span> it takes and <span class="highlight">how many pieces</span> he uses.  
+    Programmers do the same — they check how much <span class="highlight">time</span> and <span class="highlight">memory</span> a program needs.</p>
     <div class="image-center">
-        <img src="../images/time_space_complexity.png" alt="time_space_complexity">
+        <img src="../images/time_space_complexity.png" alt="time and space analogy">
     </div>
-    <p><span class="highlight">Time Complexity</span> tells how long a program takes to run as input grows.<br>
-    <span class="highlight">Space Complexity</span> tells how much memory it uses.</p>
+    <p><span class="highlight">Time Complexity</span> → How long your code takes to run.<br>
+    <span class="highlight">Space Complexity</span> → How much memory your code uses.</p>
+
+    <div class="funfact">💡 Fun Fact: Even Google checks the time complexity of their search algorithm so that results appear in milliseconds!</div>
 </div>
 
-<!-- Big-Theta Section -->
+<!-- Big Theta -->
 <div class="card">
-    <h2 class="section-title">1️⃣ Big-Θ (Theta) Notation — Exact Growth</h2>
-    <p>Think of Θ as the <span class="tip">exact sandwich</span> for runtime: it’s always between a lower and upper bound when input is large.</p>
-    <div class="example">
-        <p>Example: Linear Search</p>
-        <pre>
-var doLinearSearch = function(array, targetValue) {
-  for (var guess = 0; guess < array.length; guess++) {
-    if (array[guess] === targetValue) return guess;
-  }
-  return -1;
-};
-        </pre>
-    </div>
-    <p>It runs at most <span class="highlight">n</span> times (if value not found). Each iteration does constant work, so total = <span class="highlight">c1*n + c2</span>. We ignore constants and low-order terms → <span class="highlight">Θ(n)</span>.</p>
-    <div class="image-center">
-        <img src="../images/time_thetha.png" alt="theta">
-    </div>
-    <p>Key takeaway: <span class="highlight">Θ(f(n)) = tight bound</span>. It shows growth rate precisely for large inputs.</p>
-</div>
+    <h2 class="section-title">1️⃣ Big-Θ (Theta) — Exact Time</h2>
+    <p>Think of Θ as the <span class="tip">average time your code usually takes</span>.  
+    Example: you normally take 10 minutes to walk to school — not the fastest, not the slowest — just average!</p>
 
-<!-- Big-O Section -->
-<div class="card">
-    <h2 class="section-title">2️⃣ Big-O (O) Notation — Upper Bound</h2>
-    <p>Big-O tells us the <span class="tip">maximum time</span> an algorithm could take. It’s like saying: “It will take at most 1 hour.”</p>
-    <div class="example">
-        <p>Example: Binary Search</p>
-        <pre>
-function binarySearch(arr, target) {
-  let start = 0, end = arr.length-1;
-  while(start <= end) {
-    let mid = Math.floor((start + end)/2);
-    if(arr[mid] === target) return mid;
-    else if(arr[mid] < target) start = mid+1;
-    else end = mid-1;
+    <pre>
+function linearSearch(arr, target) {
+  for (let i = 0; i < arr.length; i++) {
+    if (arr[i] === target) return i;
   }
   return -1;
 }
-        </pre>
-    </div>
-    <p>Worst-case runtime = <span class="highlight">O(log n)</span>. It’s an upper limit, not exact.</p>
+    </pre>
+
     <div class="image-center">
-        <img src="../images/big_oh.png" alt="big-O">
+        <img src="../images/time_thetha.png" alt="theta graph">
     </div>
-    <p>Tip: Big-O is useful to say: “Algorithm won’t be slower than this”</p>
+
+    <p>This code runs <span class="highlight">n</span> times in the worst case → Θ(n)</p>
+
+    <div class="trythis">
+        <h3>🧩 Try This!</h3>
+        <p>Make a list of your 10 favorite movies and write a program to find one name.  
+        Then increase it to 1,000 movies. See the difference — that's time complexity!</p>
+    </div>
+
+    <div class="funfact">💡 Fun Fact: Θ(n) means your program’s time grows directly with input size — double input, double time!</div>
 </div>
 
-<!-- Big-Omega Section -->
+<!-- Big O -->
 <div class="card">
-    <h2 class="section-title">3️⃣ Big-Ω (Omega) Notation — Lower Bound</h2>
-    <p>Big-Ω tells us the <span class="tip">minimum time</span> an algorithm will take. It’s like saying: “It will take at least 10 minutes.”</p>
-    <div class="example">
-        <p>Example: Binary search</p>
-        <p>Finding target on first guess → <span class="highlight">Ω(1)</span>.</p>
-    </div>
+    <h2 class="section-title">2️⃣ Big-O — The Upper Limit</h2>
+    <p>Big-O means the <span class="tip">maximum time</span> your code might take.  
+    Like saying, “Even if traffic is bad, I’ll reach in 30 minutes.”</p>
+
+    <pre>
+function binarySearch(arr, target) {
+  let start = 0, end = arr.length - 1;
+  while (start <= end) {
+    let mid = Math.floor((start + end) / 2);
+    if (arr[mid] === target) return mid;
+    else if (arr[mid] < target) start = mid + 1;
+    else end = mid - 1;
+  }
+  return -1;
+}
+    </pre>
+
     <div class="image-center">
-        <img src="../images/big_ohm.png" alt="big-omega">
+        <img src="../images/big_oh.png" alt="big O graph">
     </div>
-    <p>Key takeaway: Big-Ω = best-case scenario. Big-O = worst-case. Θ = exact for large inputs.</p>
+
+    <p>Binary Search runs in <span class="highlight">O(log n)</span>.  
+    Even if you double your input size, time increases slowly.</p>
+
+    <div class="trythis">
+        <h3>🧩 Try This!</h3>
+        <p>Try searching your name in a sorted contact list using binary search steps (divide and compare).  
+        You’ll see it’s super fast compared to checking one by one!</p>
+    </div>
+
+    <div class="funfact">💡 Fun Fact: O(1) is the fastest — it means instant result, like opening a fridge to get a bottle already in front!</div>
 </div>
 
-<!-- Summary Section -->
-<div class="card summary">
-    <h2 class="section-title">Quick Summary</h2>
-    <ul>
-        <li><span class="highlight">Θ(f(n)):</span> Exact growth, tight bound.</li>
-        <li><span class="highlight">O(f(n)):</span> Upper bound, maximum time.</li>
-        <li><span class="highlight">Ω(f(n)):</span> Lower bound, minimum time.</li>
-    </ul>
+<!-- Big Omega -->
+<div class="card">
+    <h2 class="section-title">3️⃣ Big-Ω (Omega) — Best Case</h2>
+    <p>Big-Ω is the <span class="tip">minimum time</span> your code takes.  
+    Example: You find your shoes near the door instead of searching the whole house — that’s Ω(1)!</p>
+
+    <div class="image-center">
+        <img src="../images/big_ohm.png" alt="big omega graph">
+    </div>
+
+    <p>In binary search, if you find the element at first try → <span class="highlight">Ω(1)</span>.</p>
+
+    <div class="funfact">💡 Fun Fact: Ω helps know the best possible performance, even if it’s rare!</div>
 </div>
+
+<!-- Summary -->
+<div class="card summary">
+    <h2 class="section-title">📘 Quick Summary</h2>
+    <ul>
+        <li><span class="highlight">Θ(f(n)):</span> Exact average growth rate.</li>
+        <li><span class="highlight">O(f(n)):</span> Maximum (worst case).</li>
+        <li><span class="highlight">Ω(f(n)):</span> Minimum (best case).</li>
+    </ul>
+    <p class="tip">👉 Think of it as travel time: Ω = shortest, Θ = usual, O = longest!</p>
+</div>
+
+<footer>💻 Built for beginners who dream to code smarter, not harder 🚀</footer>
 
 </body>
 </html>
