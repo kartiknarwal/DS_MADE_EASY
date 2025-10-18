@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Two Pointer Technique — Visual Guide</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0D1B1E;        /* deep navy-green */
+    --panel:#112526;     /* darker panel */
+    --primary:#00C896;   /* emerald green */
+    --accent:#14FFEC;    /* teal glow */
+    --muted:#94BFB7;     /* soft muted text */
+    --code:#081414;
+    --success:#9EFFA9;
+    --glass: rgba(255,255,255,0.03);
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:'Poppins',sans-serif;
+    background:linear-gradient(180deg,var(--bg),#071014);
+    color:var(--accent);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:28px;
+    display:flex;
+    justify-content:center;
+  }
+
+  .wrap{
+    width:100%;
+    max-width:1100px;
+    display:flex;
+    gap:20px;
+    align-items:flex-start;
+  }
+
+  header{
+    width:100%;
+    text-align:center;
+    margin-bottom:14px;
+  }
+
+  h1{
+    margin:0;
+    color:var(--primary);
+    font-size:28px;
+    letter-spacing:0.2px;
+    text-shadow:0 4px 18px rgba(0,200,150,0.07);
+  }
+  p.lead{
+    margin:6px 0 0;
+    color:var(--muted);
+    font-size:14px;
+  }
+
+  /* Left column - visualizer */
+  .col-left{
+    flex:1.1;
+    min-width:320px;
+  }
+  .panel{
+    background:linear-gradient(180deg,var(--panel), rgba(10,25,25,0.9));
+    border-radius:14px;
+    padding:18px;
+    box-shadow:0 8px 30px rgba(0,200,150,0.06);
+    border:1px solid rgba(20,80,70,0.08);
+  }
+
+  .info{
+    background: linear-gradient(90deg, rgba(20,80,70,0.06), rgba(20,80,70,0.03));
+    padding:10px 14px;
+    border-radius:10px;
+    color:var(--muted);
+    font-size:14px;
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:center;
+  }
+
+  .array-container{
+    display:flex;
+    gap:12px;
+    justify-content:center;
+    align-items:center;
+    flex-wrap:wrap;
+    padding:22px 10px;
+  }
+
+  .box{
+    width:64px;
+    height:64px;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background:var(--glass);
+    border-radius:10px;
+    font-weight:700;
+    font-size:18px;
+    color:var(--accent);
+    border:2px solid rgba(20,80,70,0.06);
+    transition: transform .35s cubic-bezier(.2,.9,.2,1), background .3s, box-shadow .3s, border-color .3s;
+    position:relative;
+  }
+
+  .box.small{ width:48px; height:48px; font-size:14px;}
+  .box.pivot{ box-shadow:0 8px 20px rgba(20,200,160,0.08); border-color:rgba(20,200,150,0.8); background:linear-gradient(180deg, rgba(20,200,150,0.06), rgba(20,200,150,0.02)); color:var(--primary)}
+  .box.left-pointer{ outline:3px solid rgba(20,200,150,0.25); transform:translateY(-6px); background:rgba(20,200,150,0.02); }
+  .box.right-pointer{ outline:3px solid rgba(20,255,236,0.18); transform:translateY(-6px); background:rgba(20,255,236,0.02); }
+  .box.sorted{ background:linear-gradient(180deg, rgba(158,255,169,0.06), rgba(158,255,169,0.02)); border-color: rgba(158,255,169,0.5); color:var(--success); }
+
+  /* pointer labels */
+  .ptr-label{
+    position:absolute;
+    top:-20px;
+    font-size:12px;
+    color:var(--muted);
+    background:transparent;
+    padding:2px 6px;
+    border-radius:6px;
+  }
+
+  /* Controls */
+  .controls{
+    display:flex;
+    gap:10px;
+    justify-content:center;
+    margin-top:8px;
+    flex-wrap:wrap;
+  }
+
+  .btn{
+    background:linear-gradient(90deg,var(--primary),var(--accent));
+    color:#04110f;
+    border:none;
+    padding:10px 12px;
+    border-radius:10px;
+    font-weight:600;
+    cursor:pointer;
+    box-shadow:0 6px 18px rgba(0,200,150,0.08);
+    transition:transform .18s ease, filter .18s;
+  }
+  .btn:hover{ transform:translateY(-3px); filter:brightness(1.03) }
+  .btn.secondary{ background:transparent; border:1px solid rgba(20,80,70,0.12); color:var(--muted) }
+  .small-input{ padding:10px 12px; border-radius:10px; background:#052322; color:var(--accent); border:1px solid rgba(20,80,70,0.06) }
+
+  /* right column - details */
+  .col-right{ width:380px; min-width:300px; }
+  .panel h3{ margin:6px 0 10px; color:var(--primary); font-size:18px }
+  .section{ margin-bottom:16px; color:var(--muted); font-size:14px; }
+
+  pre.code {
+    background:linear-gradient(180deg,var(--code), rgba(0,0,0,0.1));
+    padding:12px;
+    border-radius:10px;
+    color:#D1F9F3;
+    overflow:auto;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+    font-size:13px;
+    border:1px solid rgba(20,80,70,0.06);
+  }
+
+  .tip{
+    background:linear-gradient(90deg, rgba(0,200,150,0.03), rgba(20,80,70,0.02));
+    padding:10px;
+    border-radius:8px;
+    border-left:4px solid var(--primary);
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .fun{
+    padding:10px;
+    border-radius:8px;
+    border-left:4px solid var(--accent);
+    background:linear-gradient(90deg, rgba(20,255,236,0.02), rgba(20,80,70,0.03));
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  .status{
+    margin-top:10px;
+    color:var(--muted);
+    font-size:13px;
+  }
+
+  @media (max-width:980px){
+    .wrap{ flex-direction:column; padding:12px; }
+    .col-right{ width:100%; max-width:900px; }
+  }
+</style>
+</head>
+<body>
+  <div style="width:100%;max-width:1100px;">
+    <header>
+      <h1>🔁 Two Pointer Technique — Interactive Guide</h1>
+      <p class="lead">Beginner → Advanced: visualize how two pointers walk through arrays, find pairs, remove duplicates and more.</p>
+    </header>
+
+    <div class="wrap">
+
+      <!-- LEFT: Visualizer -->
+      <div class="col-left">
+        <div class="panel">
+          <div class="info">
+            <div>
+              <strong style="color:var(--primary)">Two Pointer</strong>
+              <div style="font-size:12px;color:var(--muted)">Use when array is sorted or you can maintain two indices</div>
+            </div>
+            <div style="text-align:right; font-size:13px; color:var(--muted)">
+              Steps: <span id="stepCount">0</span>
+            </div>
+          </div>
+
+          <div id="arrayArea" class="array-container" aria-live="polite"></div>
+
+          <div class="controls" style="margin-top:6px;">
+            <button class="btn" id="randBtn">🎲 Random Array</button>
+            <button class="btn secondary" id="manualBtn">✏️ Enter Array</button>
+            <button class="btn" id="nextBtn">▶ Next Step</button>
+            <button class="btn secondary" id="autoBtn">⏵ Auto Play</button>
+            <button class="btn secondary" id="resetBtn">🔄 Reset</button>
+          </div>
+
+          <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+            <input id="targetInput" class="small-input" placeholder="Target (e.g. 15)" />
+            <select id="modeSelect" class="small-input">
+              <option value="findPair">Find pair sum (sorted)</option>
+              <option value="removeDup">Remove duplicates (sorted)</option>
+              <option value="closestSum">Closest pair to target</option>
+            </select>
+            <div id="statusMsg" class="status" style="min-width:180px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Explanation & Code -->
+      <div class="col-right">
+        <div class="panel">
+          <h3>🧾 What is Two Pointers?</h3>
+          <div class="section">
+            Two pointers means using <strong>two indices</strong> (usually start and end) and moving them depending on your condition.
+            It's extremely powerful in sorted arrays — turns many O(n²) brute force solutions into O(n).
+          </div>
+
+          <div class="section tip">
+            <strong>Beginner Analogy:</strong> Two friends start at both ends of a corridor and walk toward each other, checking pairs as they go.
+          </div>
+
+          <h3>⚙️ Example (Find pair with sum = target)</h3>
+          <pre class="code">
+/* C++ example (simple) */
+bool twoSum(vector<int>& a, int target){
+  int l = 0, r = a.size()-1;
+  while(l < r){
+    int s = a[l] + a[r];
+    if(s == target) return true;
+    if(s < target) l++;
+    else r--;
+  }
+  return false;
+}
+          </pre>
+
+          <div class="section">
+            <strong>Why it helps:</strong>
+            <ul style="color:var(--muted); margin:8px 0 0 18px; padding:0;">
+              <li>Linear time O(n) instead of O(n²)</li>
+              <li>Low memory — O(1) extra space</li>
+              <li>Flexible: pair-sum, two-sum variants, remove-duplicates, sliding-window foundations</li>
+            </ul>
+          </div>
+
+          <div style="margin-top:12px" class="fun">💡 Fun Fact: Two pointers is the core idea behind many interview questions like "Container With Most Water" and efficient string problems.</div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+/* =========== Logic & UI =========== */
+const arrayArea = document.getElementById('arrayArea');
+const randBtn = document.getElementById('randBtn');
+const manualBtn = document.getElementById('manualBtn');
+const nextBtn = document.getElementById('nextBtn');
+const autoBtn = document.getElementById('autoBtn');
+const resetBtn = document.getElementById('resetBtn');
+const targetInput = document.getElementById('targetInput');
+const modeSelect = document.getElementById('modeSelect');
+const statusMsg = document.getElementById('statusMsg');
+const stepCountEl = document.getElementById('stepCount');
+
+let arr = [];
+let left = 0, right = 0;
+let mode = 'findPair'; // 'findPair' | 'removeDup' | 'closestSum'
+let target = null;
+let stepCount = 0;
+let autoplay = false;
+let autoplayId = null;
+
+/* helpers */
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+function createBoxes(){
+  arrayArea.innerHTML = '';
+  for(let i=0;i<arr.length;i++){
+    const b = document.createElement('div');
+    b.className = 'box';
+    b.dataset.idx = i;
+    b.textContent = arr[i];
+    arrayArea.appendChild(b);
+  }
+}
+
+function renderPointers(){
+  // clear classes
+  const boxes = arrayArea.querySelectorAll('.box');
+  boxes.forEach(b=>{
+    b.classList.remove('left-pointer','right-pointer','pivot','sorted');
+    const idx = Number(b.dataset.idx);
+    if(mode === 'removeDup'){
+      // mark final placed region as sorted style for visual if left pointer used as write index
+    }
+  });
+
+  if(arr.length === 0) return;
+  if(left >=0 && left < arr.length){
+    const bL = arrayArea.querySelector(`.box[data-idx="${left}"]`);
+    if(bL) bL.classList.add('left-pointer');
+  }
+  if(right >=0 && right < arr.length){
+    const bR = arrayArea.querySelector(`.box[data-idx="${right}"]`);
+    if(bR) bR.classList.add('right-pointer');
+  }
+}
+
+function setStatus(msg){
+  statusMsg.textContent = msg;
+}
+
+/* initialize new random array (sorted for two-pointer problems) */
+function newRandomArray(len=8){
+  arr = Array.from({length:len},()=>randInt(1,20));
+  arr.sort((a,b)=>a-b); // sorted makes sense for many two-pointer problems
+  resetState();
+}
+
+/* manual entry */
+function manualArray(){
+  const raw = prompt('Enter numbers separated by commas (example: 1,2,3,4). Will be sorted automatically:');
+  if(!raw) return;
+  const parsed = raw.split(',').map(s=>Number(s.trim())).filter(n=>!isNaN(n));
+  if(parsed.length === 0){ alert('No valid numbers found'); return; }
+  arr = parsed.sort((a,b)=>a-b);
+  resetState();
+}
+
+/* reset pointers & UI */
+function resetState(){
+  left = 0;
+  right = arr.length-1;
+  stepCount = 0;
+  stepCountEl.textContent = stepCount;
+  createBoxes();
+  renderPointers();
+  setStatus('Ready — choose mode and target (if needed).');
+  stopAuto();
+}
+
+/* Next step logic per mode */
+function nextStep(){
+  if(arr.length === 0){
+    setStatus('No array present. Click Random Array or Enter Array.');
+    return;
+  }
+  mode = modeSelect.value;
+  target = targetInput.value ? Number(targetInput.value) : null;
+
+  stepCount++;
+  stepCountEl.textContent = stepCount;
+
+  if(mode === 'findPair'){
+    findPairStep();
+  } else if(mode === 'removeDup'){
+    removeDupStep();
+  } else if(mode === 'closestSum'){
+    closestSumStep();
+  }
+}
+
+/* ---------- Mode: findPair ---------- */
+let found = false;
+function findPairStep(){
+  if(found){
+    setStatus('Pair already found. Reset to try again.');
+    return;
+  }
+  if(left >= right){
+    setStatus('No pair found (left >= right). Try another array or target.');
+    return;
+  }
+  const sum = arr[left] + arr[right];
+  renderPointers();
+  setStatus(`Comparing arr[${left}] = ${arr[left]} and arr[${right}] = ${arr[right]} → sum = ${sum}`);
+  // brief pause effect (animate)
+  if(target === null || isNaN(target)){
+    setStatus('Please enter a target in the Target field (e.g. 15).');
+    return;
+  }
+
+  if(sum === target){
+    // highlight found pair
+    const bL = arrayArea.querySelector(`.box[data-idx="${left}"]`);
+    const bR = arrayArea.querySelector(`.box[data-idx="${right}"]`);
+    if(bL) bL.classList.add('pivot');
+    if(bR) bR.classList.add('pivot');
+    setStatus(`✅ Pair found: arr[${left}] (${arr[left]}) + arr[${right}] (${arr[right]}) = ${target}`);
+    found = true;
+    stopAuto();
+    return;
+  } else if(sum < target){
+    left++;
+    renderPointers();
+    setStatus(`Sum ${sum} < ${target}. Move left → ${left}`);
+  } else {
+    right--;
+    renderPointers();
+    setStatus(`Sum ${sum} > ${target}. Move right → ${right}`);
+  }
+}
+
+/* ---------- Mode: remove duplicates (in-place) ---------- */
+/* We'll implement the typical write-pointer approach */
+let writeIdx = null;
+let readIdx = null;
+let removeInit = false;
+
+function removeDupStep(){
+  if(!removeInit){
+    // initialization
+    if(arr.length === 0){ setStatus('Array empty'); return; }
+    writeIdx = 1;
+    readIdx = 1;
+    removeInit = true;
+    setStatus('Starting remove-duplicates: writeIdx=1, readIdx=1');
+    renderPointers();
+    markSortedRegion(writeIdx-1);
+    return;
+  }
+
+  if(readIdx >= arr.length){
+    setStatus(`Done. Unique count = ${writeIdx}. Array (first ${writeIdx} elements): [${arr.slice(0,writeIdx)}]`);
+    stopAuto();
+    return;
+  }
+
+  renderPointers();
+  setStatus(`Compare arr[${readIdx}]=${arr[readIdx]} with arr[${writeIdx-1}]=${arr[writeIdx-1]}`);
+  if(arr[readIdx] !== arr[writeIdx-1]){
+    arr[writeIdx] = arr[readIdx];
+    // animate placement by re-rendering boxes content
+    createBoxes();
+    highlightSwap(writeIdx, readIdx);
+    writeIdx++; readIdx++;
+    markSortedRegion(writeIdx-1);
+    setStatus(`Unique found, placed at index ${writeIdx-1}.`);
+  } else {
+    readIdx++;
+    setStatus(`Duplicate found — skip read index → ${readIdx}`);
+  }
+}
+
+function markSortedRegion(endIdx){
+  // style boxes 0..endIdx as sorted
+  const boxes = arrayArea.querySelectorAll('.box');
+  boxes.forEach(b=>{
+    b.classList.remove('sorted');
+    const idx = Number(b.dataset.idx);
+    if(idx <= endIdx) b.classList.add('sorted');
+  });
+}
+
+/* ---------- Mode: closestSum ---------- */
+let bestDiff = Infinity;
+let bestPair = null;
+function closestSumStep(){
+  if(left >= right){
+    if(bestPair){
+      setStatus(`Done. Closest pair: [${bestPair[0]}, ${bestPair[1]}] with sum ${bestPair[0]+bestPair[1]}`);
+    } else {
+      setStatus('No pair checked. Try with larger array.');
+    }
+    stopAuto();
+    return;
+  }
+
+  const sum = arr[left] + arr[right];
+  const diff = Math.abs((target || 0) - sum);
+  renderPointers();
+  setStatus(`Checking arr[${left}]=${arr[left]} + arr[${right}]=${arr[right]} => sum=${sum}, diff=${diff}`);
+
+  if(diff < bestDiff){
+    bestDiff = diff;
+    bestPair = [arr[left], arr[right]];
+    // mark best pair visually
+    highlightBestPair(left,right);
+  }
+
+  if(target === null || isNaN(target)){
+    // In no-target mode, just step through pairs -> move left++ or right-- to visit pairs
+    left++; // just advance
+  } else {
+    if(sum > target) right--;
+    else left++;
+  }
+}
+
+function highlightBestPair(l,r){
+  // clear previous
+  const boxes = arrayArea.querySelectorAll('.box');
+  boxes.forEach(b=>b.style.boxShadow='0 0 10px rgba(20,200,150,0.15)');
+  const bL = arrayArea.querySelector(`.box[data-idx="${l}"]`);
+  const bR = arrayArea.querySelector(`.box[data-idx="${r}"]`);
+  if(bL) bL.style.boxShadow = '0 0 20px rgba(158,255,169,0.9)';
+  if(bR) bR.style.boxShadow = '0 0 20px rgba(158,255,169,0.9)';
+}
+
+/* utility: simple swap highlight */
+function highlightSwap(a,b){
+  const bA = arrayArea.querySelector(`.box[data-idx="${a}"]`);
+  const bB = arrayArea.querySelector(`.box[data-idx="${b}"]`);
+  if(!bA || !bB) return;
+  bA.style.transform = 'translateY(-8px)';
+  bB.style.transform = 'translateY(-8px)';
+  setTimeout(()=>{
+    bA.style.transform = '';
+    bB.style.transform = '';
+    // refresh boxes values after swap done in underlying array
+    createBoxes();
+    renderPointers();
+  }, 400);
+}
+
+/* autoplay control */
+function startAuto(){
+  if(autoplay) return;
+  autoplay = true;
+  autoBtn.textContent = '⏸ Pause';
+  autoplayId = setInterval(()=>{
+    // stop auto if finished
+    if(modeSelect.value === 'removeDup' && removeInit && readIdx >= arr.length) stopAuto();
+    if(modeSelect.value === 'findPair' && found) stopAuto();
+    nextStep();
+  }, 800);
+}
+function stopAuto(){
+  autoplay = false;
+  autoBtn.textContent = '⏵ Auto Play';
+  if(autoplayId) clearInterval(autoplayId);
+  autoplayId = null;
+}
+
+/* event listeners */
+randBtn.addEventListener('click', ()=>newRandomArray(8));
+manualBtn.addEventListener('click', manualArray);
+nextBtn.addEventListener('click', ()=>{ nextStep(); });
+autoBtn.addEventListener('click', ()=>{
+  if(!autoplay) startAuto(); else stopAuto();
+});
+resetBtn.addEventListener('click', ()=>{ resetAll(); });
+
+modeSelect.addEventListener('change', ()=>{
+  // reset mode-specific states
+  mode = modeSelect.value;
+  found = false;
+  removeInit = false;
+  bestDiff = Infinity;
+  bestPair = null;
+  resetState();
+});
+
+targetInput.addEventListener('change', ()=>{ /* target will be read on nextStep */ });
+
+/* reset everything */
+function resetAll(){
+  stopAuto();
+  found = false;
+  removeInit = false;
+  bestDiff = Infinity;
+  bestPair = null;
+  newRandomArray(arr.length || 8);
+}
+
+/* initialize */
+function newRandomArray(len=8){
+  arr = Array.from({length:len},()=>randInt(1,25));
+  arr.sort((a,b)=>a-b);
+  resetModeVars();
+  resetState();
+}
+
+function resetModeVars(){
+  found = false;
+  removeInit = false;
+  writeIdx = null; readIdx = null;
+  bestDiff = Infinity; bestPair = null;
+}
+
+function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+/* start with a default array */
+newRandomArray(8);
+
+/* small accessibility: keyboard next step (space) */
+document.addEventListener('keydown', (e)=>{
+  if(e.code === 'Space'){ e.preventDefault(); nextStep(); }
+});
+</script>
+</body>
+</html>

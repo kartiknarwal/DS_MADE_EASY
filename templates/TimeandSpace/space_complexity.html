@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>⏱️ Time & Space Complexity — Beginner Guide</title>
+
+  <style>
+    /* ===== RESET ===== */
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      background: radial-gradient(circle at top left, #1A1A1A, #0D0D0D);
+      color: #E8E8E8;
+      line-height: 1.8;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      min-height: 100vh;
+    }
+
+    /* ===== HEADER ===== */
+    header {
+      text-align: center;
+      padding: 60px 20px 40px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::after {
+      content: '';
+      position: absolute;
+      top: -100px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(154,91,255,0.25), transparent 70%);
+      filter: blur(60px);
+      z-index: 0;
+    }
+
+    h1 {
+      font-size: 2.8rem;
+      color: #9A5BFF;
+      position: relative;
+      z-index: 1;
+    }
+
+    p.subtitle {
+      font-size: 1.15rem;
+      color: #B8B8B8;
+      margin-top: 10px;
+      z-index: 1;
+      position: relative;
+    }
+
+    /* ===== SECTIONS ===== */
+    section {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 40px 50px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 30px rgba(154, 91, 255, 0.2);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    section:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 0 40px rgba(154, 91, 255, 0.4);
+    }
+
+    h2 {
+      font-size: 1.9rem;
+      color: #FF9F45;
+      margin-bottom: 15px;
+    }
+
+    p {
+      font-size: 1.05rem;
+      margin-bottom: 15px;
+    }
+
+    .highlight {
+      color: #9A5BFF;
+      font-weight: 600;
+    }
+
+    img {
+      width: 85%;
+      max-width: 460px;
+      display: block;
+      margin: 25px auto;
+      border-radius: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 25px rgba(154, 91, 255, 0.2);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    img:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 35px rgba(255, 159, 69, 0.3);
+    }
+
+    /* ===== CARDS ===== */
+    .card {
+      background: rgba(255, 255, 255, 0.08);
+      border-left: 4px solid #9A5BFF;
+      border-radius: 12px;
+      padding: 18px 22px;
+      margin: 25px 0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 0 20px rgba(154, 91, 255, 0.4);
+    }
+
+    .card h3 {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #FF9F45;
+      margin-bottom: 8px;
+    }
+
+    .card p {
+      display: none;
+      margin-top: 8px;
+      color: #E8E8E8;
+    }
+
+    .card.active p {
+      display: block;
+      animation: fadeIn 0.4s ease;
+    }
+
+    .fun { border-left-color: #FF9F45; }
+    .try { border-left-color: #57FFA0; }
+
+    .fun h3 { color: #FF9F45; }
+    .try h3 { color: #57FFA0; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      text-align: center;
+      color: #888;
+      margin: 60px 0 40px;
+      font-size: 0.95rem;
+    }
+
+    footer span {
+      color: #9A5BFF;
+      font-weight: 600;
+    }
+
+    /* ===== SCROLL BUTTON ===== */
+    #topBtn {
+      position: fixed;
+      bottom: 25px;
+      right: 25px;
+      background: linear-gradient(135deg, #9A5BFF, #FF9F45);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 22px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(154, 91, 255, 0.4);
+      display: none;
+      transition: all 0.3s ease;
+      z-index: 99;
+    }
+
+    #topBtn:hover {
+      transform: scale(1.15);
+      box-shadow: 0 0 25px rgba(255, 159, 69, 0.6);
+    }
+
+    @media (max-width: 650px) {
+      h1 { font-size: 2.1rem; }
+      section { padding: 25px; }
+      img { width: 100%; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>⏱️ Time & Space Complexity</h1>
+    <p class="subtitle">Understand algorithms like never before — the fun, visual way ⚡</p>
+  </header>
+
+  <section>
+    <h2>💡 What is Time Complexity?</h2>
+    <p>Time Complexity measures <span class="highlight">how fast an algorithm grows</span> as inputs get larger — not the real-world time, but how work increases.</p>
+    <p>Imagine finding your favorite book on a shelf — 10 books = easy, 10,000 books = takes longer 📚</p>
+    <img src="../../images/time_space_complexity.png" alt="Time vs Space Complexity">
+
+    <div class="card fun">
+      <h3>🧠 Fun Fact 1 <span>▼</span></h3>
+      <p>Google uses logarithmic search algorithms — that’s why results appear in milliseconds ⚡</p>
+    </div>
+
+    <div class="card fun">
+      <h3>🧠 Fun Fact 2 <span>▼</span></h3>
+      <p>Even your YouTube recommendations depend on algorithms optimized with time complexity in mind!</p>
+    </div>
+
+    <div class="card try">
+      <h3>🧩 Try This <span>▼</span></h3>
+      <p>Write a loop to find the largest number in a list of 10, then 10,000 elements — feel the difference? 😅</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>📦 What is Space Complexity?</h2>
+    <p>Space Complexity measures <span class="highlight">how much memory</span> an algorithm needs — like how full your backpack gets as you add more items 🎒</p>
+    <img src="../../images/big_oh.png" alt="Big O Graph">
+
+    <div class="card fun">
+      <h3>🧠 Fun Fact 3 <span>▼</span></h3>
+      <p>Some algorithms use extra memory to run faster — it’s called a <span class="highlight">space-time tradeoff</span>.</p>
+    </div>
+
+    <div class="card try">
+      <h3>🧩 Try This <span>▼</span></h3>
+      <p>Compare a sorting algorithm that creates a new array (uses more memory) vs one that sorts in place.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>🌀 Big O, Ω, and Θ</h2>
+    <p>These symbols describe your algorithm’s <span class="highlight">worst, best, and average cases</span>.</p>
+    <img src="../../images/big_ohm.png" alt="Big Omega">
+    <img src="../../images/time_thetha.png" alt="Big Theta">
+
+    <div class="card fun">
+      <h3>🧠 Fun Fact 4 <span>▼</span></h3>
+      <p>Big O doesn’t mean “Oh no!” — it just marks how fast your program grows in the worst case 😄</p>
+    </div>
+
+    <div class="card try">
+      <h3>🧩 Try This <span>▼</span></h3>
+      <p>Think about searching your name in a contact list:
+        <br>Page 1 → Ω(1) (Best)
+        <br>Middle → Θ(n/2)
+        <br>Last → O(n) (Worst)
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    Built with ❤️ for learners by <span>DSA Visual</span>
+  </footer>
+
+  <button id="topBtn">↑</button>
+
+  <script>
+    // Toggle Fun Fact / Try This
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+      card.addEventListener('click', () => {
+        card.classList.toggle('active');
+        const arrow = card.querySelector('span');
+        arrow.textContent = card.classList.contains('active') ? '▲' : '▼';
+
+        // Small ripple highlight effect
+        card.animate([{ backgroundColor: 'rgba(255,255,255,0.15)' }, { backgroundColor: 'rgba(255,255,255,0.08)' }], {
+          duration: 500,
+          easing: 'ease-out'
+        });
+      });
+    });
+
+    // Scroll to Top button
+    const topBtn = document.getElementById('topBtn');
+    window.addEventListener('scroll', () => {
+      topBtn.style.display = window.scrollY > 400 ? 'block' : 'none';
+    });
+    topBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  </script>
+</body>
+</html>

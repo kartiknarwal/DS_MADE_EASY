@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dutch National Flag Visualizer</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+  body {
+    font-family: 'Poppins', sans-serif;
+    background: #1B1B2F;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 20px;
+  }
+
+  h1 {
+    color: #FF6F61;
+    text-shadow: 0 0 10px #FF9A8B;
+    text-align: center;
+  }
+
+  .panel {
+    background: #2C2C54;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 900px;
+    box-shadow: 0 0 20px rgba(255,111,97,0.3);
+  }
+
+  .legend {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 15px;
+    font-size: 1rem;
+  }
+  .legend span {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .legend-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+  }
+  .color-0 { background: #FF6F61; } /* Pink */
+  .color-1 { background: #6BCB77; } /* Green */
+  .color-2 { background: #4D96FF; } /* Blue */
+
+  .array-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+  }
+
+  .box {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    border-radius: 8px;
+    background: #3B3B98;
+    color: #fff;
+    font-size: 1.2rem;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    transition: all 0.3s ease;
+    position: relative;
+  }
+
+  .pointer {
+    position: absolute;
+    top: -25px;
+    font-size: 0.8rem;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  input, button {
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+  }
+
+  input {
+    background: #3B3B98;
+    color: #fff;
+    width: 100px;
+    text-align: center;
+  }
+
+  button {
+    background: #FF6F61;
+    color: #1B1B2F;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  button:hover {
+    background: #FF9A8B;
+    transform: scale(1.05);
+  }
+
+  .explanation {
+    background: #2C2C54;
+    padding: 15px 20px;
+    border-radius: 12px;
+    color: #F0F0F0;
+    font-size: 1rem;
+    line-height: 1.5;
+    width: 90%;
+    max-width: 900px;
+    text-align: left;
+    max-height: 400px;
+    overflow-y: auto;
+  }
+
+  .step {
+    border-left: 4px solid #FF6F61;
+    padding: 8px 15px;
+    margin: 8px 0;
+    background: #1C1C38;
+    border-radius: 6px;
+    animation: fadeIn 0.4s ease;
+  }
+
+  .step-number { font-weight: bold; color: #FF9A8B; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+
+</style>
+</head>
+<body>
+
+<h1>🇳🇱 Dutch National Flag Visualizer</h1>
+
+<div class="panel">
+  <div class="legend">
+    <span><div class="legend-box color-0"></div> 0 (Pink)</span>
+    <span><div class="legend-box color-1"></div> 1 (Green)</span>
+    <span><div class="legend-box color-2"></div> 2 (Blue)</span>
+  </div>
+
+  <div class="array-container" id="arrayContainer"></div>
+
+  <div class="controls">
+    <button id="randomBtn">🎲 Random Array</button>
+    <button id="manualBtn">✏️ Enter Array</button>
+    <button id="nextBtn">▶️ Next Step</button>
+    <button id="resetBtn">🔄 Reset</button>
+  </div>
+</div>
+
+<div class="panel explanation" id="explanation">
+  <div class="step"><div class="step-number">Intro:</div> Press <b>Next Step</b> to start sorting. You will see the algorithm in action, with explanations!</div>
+</div>
+
+<script>
+let arr = [];
+let low = 0, mid = 0, high = 0;
+let stepCount = 1;
+let state = "start"; // "start", "process", "done"
+
+const container = document.getElementById("arrayContainer");
+const explanation = document.getElementById("explanation");
+
+function renderArray() {
+  container.innerHTML = "";
+  arr.forEach((val, idx) => {
+    const box = document.createElement("div");
+    box.className = "box color-" + val;
+    box.textContent = val;
+
+    // Pointers
+    if(idx === low) {
+      const p = document.createElement("div");
+      p.className = "pointer";
+      p.textContent = "low";
+      box.appendChild(p);
+    }
+    if(idx === mid) {
+      const p = document.createElement("div");
+      p.className = "pointer";
+      p.textContent = "mid";
+      box.appendChild(p);
+    }
+    if(idx === high) {
+      const p = document.createElement("div");
+      p.className = "pointer";
+      p.textContent = "high";
+      box.appendChild(p);
+    }
+
+    container.appendChild(box);
+  });
+}
+
+function addStep(text){
+  const div = document.createElement("div");
+  div.className = "step";
+  div.innerHTML = `<div class='step-number'>Step ${stepCount++}:</div> ${text}`;
+  explanation.appendChild(div);
+  explanation.scrollTop = explanation.scrollHeight;
+}
+
+function randomArray(size=10){
+  arr = Array.from({length:size}, ()=> Math.floor(Math.random()*3));
+  resetState();
+}
+
+function manualArray(){
+  const input = prompt("Enter numbers (0,1,2) separated by commas:");
+  if(!input) return;
+  arr = input.split(",").map(Number);
+  resetState();
+}
+
+function resetState(){
+  low = 0; mid = 0; high = arr.length - 1;
+  stepCount = 1;
+  state = "start";
+  explanation.innerHTML = "";
+  addStep("New Dutch National Flag session started.");
+  renderArray();
+}
+
+function nextStep(){
+  if(arr.length === 0) return;
+
+  if(mid > high){
+    state = "done";
+    addStep(`✅ Sorting complete! Final array: [${arr.join(", ")}]`);
+    renderArray();
+    return;
+  }
+
+  let val = arr[mid];
+
+  if(val === 0){
+    addStep(`arr[mid]=0 → swap arr[low] (${arr[low]}) and arr[mid] (${arr[mid]}). Move low & mid forward.`);
+    [arr[low], arr[mid]] = [arr[mid], arr[low]];
+    low++; mid++;
+  } else if(val === 1){
+    addStep(`arr[mid]=1 → Correct position, move mid forward.`);
+    mid++;
+  } else { // val === 2
+    addStep(`arr[mid]=2 → swap arr[mid] (${arr[mid]}) and arr[high] (${arr[high]}). Move high backward.`);
+    [arr[mid], arr[high]] = [arr[high], arr[mid]];
+    high--;
+  }
+
+  renderArray();
+}
+
+// Event listeners
+document.getElementById("randomBtn").addEventListener("click", ()=>randomArray());
+document.getElementById("manualBtn").addEventListener("click", manualArray);
+document.getElementById("nextBtn").addEventListener("click", ()=>nextStep());
+document.getElementById("resetBtn").addEventListener("click", resetState);
+
+// Initialize
+randomArray();
+</script>
+
+</body>
+</html>
