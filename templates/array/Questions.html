@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Array Questions — Ultimate Quick Recap</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+/* --------------------------------------------
+   THEME: Gradient Descent — heavy CSS + animations
+   -------------------------------------------- */
+:root{
+  --bg:#071021;
+  --card-1:linear-gradient(135deg,#0f1724 0%,#14213d 50%,#0b1b2b 100%);
+  --accent1: #FF6B00;
+  --accent2: #FF8C32;
+  --muted:#9AA7C0;
+  --glass: rgba(255,255,255,0.03);
+  --glass-2: rgba(255,255,255,0.02);
+  --glass-3: rgba(255,255,255,0.01);
+  --glass-border: rgba(255,255,255,0.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;
+  font-family: "Poppins",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+  background: radial-gradient(1200px 600px at 10% 10%, rgba(255,107,0,0.03), transparent 6%),
+              radial-gradient(800px 400px at 90% 90%, rgba(255,140,50,0.02), transparent 6%),
+              var(--bg);
+  color:#E6EEF3;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  padding-bottom:40px;
+}
+
+/* header */
+.header {
+  padding:28px 20px;
+  text-align:center;
+  background: linear-gradient(90deg, rgba(255,107,0,0.08), rgba(255,140,50,0.04));
+  border-bottom: 1px solid rgba(255,255,255,0.02);
+  position:sticky; top:0; z-index:50;
+  backdrop-filter: blur(6px);
+}
+.header h1{
+  margin:0;
+  font-size:28px;
+  letter-spacing:0.2px;
+  color:linear-gradient(90deg,var(--accent1),var(--accent2));
+  display:inline-block;
+  background: linear-gradient(90deg,var(--accent1),var(--accent2));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-shadow:0 6px 30px rgba(255,107,0,0.06);
+}
+.header p{margin:8px 0 0; color:var(--muted); font-size:13px}
+
+/* controls row */
+.controls {
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:center;
+  padding:14px 12px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--glass-border);
+  background: linear-gradient(180deg, rgba(255,255,255,0.008), transparent);
+  position:sticky; top:72px; z-index:49;
+}
+.searchbox{
+  display:flex; align-items:center; gap:8px;
+  background:var(--glass); padding:10px 12px; border-radius:12px;
+  box-shadow: inset 0 -4px 12px rgba(0,0,0,0.5);
+  border:1px solid rgba(255,255,255,0.02);
+  min-width:280px;
+}
+.searchbox input{
+  background:transparent; border:0; outline:0; color:inherit; font-size:14px; width:340px;
+}
+.chips{display:flex;gap:8px; flex-wrap:wrap; justify-content:center}
+.chip {
+  background:linear-gradient(90deg,#0f1724,#132033);
+  padding:8px 12px; border-radius:999px; font-size:13px; color:var(--muted);
+  border:1px solid rgba(255,255,255,0.02); cursor:pointer;
+  transition:all .18s ease;
+}
+.chip.active{ color:white; box-shadow:0 6px 22px rgba(255,107,0,0.12); transform:translateY(-3px) }
+.reset-btn{ margin-left:6px; background:transparent; border:1px dashed rgba(255,255,255,0.04); padding:8px 10px;border-radius:10px; color:var(--muted); cursor:pointer}
+
+/* cheat bar (mini) */
+.cheatbar{
+  display:flex; gap:10px; justify-content:center; padding:12px; flex-wrap:wrap;
+}
+.cheat {
+  display:flex;align-items:center; gap:8px; padding:8px 12px;border-radius:10px;
+  background: linear-gradient(90deg, rgba(255,107,0,0.12), rgba(255,140,50,0.06));
+  color:#fff; font-weight:600; font-size:13px; box-shadow:0 8px 30px rgba(11,27,43,0.4);
+}
+
+/* layout grid */
+.container{ max-width:1200px; margin:28px auto; padding:0 18px;}
+.grid {
+  display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap:18px;
+}
+
+/* card */
+.card{
+  background: var(--card-1);
+  border-radius:14px; padding:18px;
+  border:1px solid var(--glass-border);
+  box-shadow: 0 10px 30px rgba(2,6,23,0.6);
+  transition: transform .24s ease, box-shadow .24s ease;
+  position:relative; overflow:hidden;
+  min-height:150px;
+}
+.card:hover{ transform: translateY(-8px); box-shadow: 0 22px 60px rgba(2,6,23,0.9) }
+
+/* gradient accent stripe */
+.card::before{
+  content:""; position:absolute; height:220px; width:220px; right:-60px; top:-80px;
+  background: radial-gradient(circle at 20% 20%, rgba(255,107,0,0.06), transparent 10%),
+              linear-gradient(135deg, rgba(255,107,0,0.06), rgba(255,140,50,0.02));
+  transform: rotate(15deg); pointer-events:none;
+}
+
+/* card header */
+.card .title{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+.card h3{ margin:0; font-size:17px; color: #FFD974; display:flex; align-items:center; gap:10px;}
+.card .meta{ font-size:12px; color:var(--muted) }
+
+/* tags row */
+.tags{ margin-top:12px; display:flex; gap:8px; flex-wrap:wrap}
+.tag{ font-size:12px; padding:6px 9px; border-radius:999px; background: linear-gradient(90deg,#FF6B00,#FF8C32); color:#fff; box-shadow: 0 6px 18px rgba(255,107,0,0.12) }
+
+/* body */
+.card .desc{ margin-top:12px; color:#dfe9f7; font-size:14px; line-height:1.5 }
+.card ul{ margin:10px 0 0 16px; color:var(--muted) }
+.card .analogy{ display:inline-block; margin-top:10px; background: linear-gradient(90deg,#0f1724,#1a2740); padding:8px 10px; color:#aee1ff; border-radius:10px; font-size:13px }
+
+/* controls inside card */
+.card .actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+.action-btn{
+  background:transparent; border:1px solid rgba(255,255,255,0.04); color:var(--muted);
+  padding:8px 10px; border-radius:10px; font-size:13px; cursor:pointer;
+}
+.action-btn.copy{ border-color: rgba(255,107,0,0.18); color:#fff; background: linear-gradient(90deg, rgba(255,107,0,0.06), rgba(255,140,50,0.02)) }
+
+/* expand/collapse details */
+.details{ margin-top:12px; display:none; padding-top:12px; border-top:1px dashed rgba(255,255,255,0.02); color: #cfe6ff; font-size:13px }
+.card.open .details{ display:block }
+
+/* footer recap */
+.footer{
+  max-width:1200px; margin:30px auto; padding:18px; border-radius:12px; background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
+  border:1px solid rgba(255,255,255,0.02); color:var(--muted);
+}
+.footer h4{ margin:0 0 8px; color:#FFD974 }
+
+/* responsive tweaks */
+@media (max-width:520px){
+  .searchbox input{ width:160px }
+  .card{ padding:14px }
+  .header h1{ font-size:20px }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Array Questions — Ultimate Quick Recap</h1>
+  <p>Common interview & practice problems (LeetCode / HackerRank / GfG). Approach, technique, and an unforgettable real-life analogy for each.</p>
+</div>
+
+<div class="controls">
+  <div class="searchbox">
+    <i class="fa fa-search" style="color:var(--muted)"></i>
+    <input id="search" placeholder="Search problem name / tag (e.g., sliding, two-pointer, rotate)"/>
+    <button class="reset-btn" id="clearSearch" title="Clear search"><i class="fa fa-xmark"></i></button>
+  </div>
+
+  <div class="chips" style="margin-left:8px">
+    <div class="chip active" data-filter="all">All</div>
+    <div class="chip" data-filter="two-pointer">Two-Pointer</div>
+    <div class="chip" data-filter="sliding-window">Sliding Window</div>
+    <div class="chip" data-filter="prefix-suffix">Prefix/Suffix</div>
+    <div class="chip" data-filter="stack">Stack</div>
+    <div class="chip" data-filter="hashmap">HashMap</div>
+    <div class="chip" data-filter="sorting">Sorting</div>
+    <div class="chip" data-filter="intervals">Intervals</div>
+    <div class="chip" data-filter="rotate">Rotate/Reverse</div>
+  </div>
+</div>
+
+<div class="cheatbar" style="padding:12px 18px">
+  <div class="cheat"><i class="fa fa-bolt"></i> 1-line memory aids</div>
+  <div class="cheat">Two-pointer = meet-in-the-middle</div>
+  <div class="cheat">Sliding window = moving magnifying glass</div>
+  <div class="cheat">Prefix/Suffix = prep ingredients</div>
+  <div class="cheat">Stack = next taller person</div>
+</div>
+
+<div class="container">
+  <div class="grid" id="grid">
+
+    <!-- CARD: Two Sum -->
+    <article class="card two-pointer hashmap" data-title="two sum" data-tags="two-pointer,hashmap">
+      <div class="title">
+        <h3><i class="fa fa-hashtag"></i> Two Sum — (LeetCode)</h3>
+        <div class="meta">Pattern: HashMap / Two-Pointer</div>
+      </div>
+      <div class="desc">
+        Find indices of two numbers that add to target.
+        <div class="tags"><span class="tag">HashMap</span><span class="tag">O(n)</span></div>
+        <ul>
+          <li><b>Approach:</b> iterate once, store value→index in map. For each num, check complement (target - num). If found, return indices.</li>
+        </ul>
+        <div class="analogy">Analogy: checking your pantry for the missing ingredient—if you have sugar, you only need to find the flour to match the recipe.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="Map approach: for i, n in enumerate(nums): if target-n in map: return [map[target-n], i]; map[n]=i">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">
+        <b>Why it works:</b> complements reduce O(n²) brute force to O(n).  
+        <b>Edge cases:</b> duplicates, negative numbers — map handles them fine.
+      </div>
+    </article>
+
+    <!-- CARD: 3Sum -->
+    <article class="card two-pointer sorting" data-title="3sum" data-tags="two-pointer,sorting">
+      <div class="title">
+        <h3><i class="fa fa-hashtag"></i> 3Sum — (LeetCode)</h3>
+        <div class="meta">Pattern: Sorting + Two pointers</div>
+      </div>
+      <div class="desc">
+        Find unique triplets that sum to zero.
+        <div class="tags"><span class="tag">Two-Pointer</span><span class="tag">Sorting</span></div>
+        <ul>
+          <li><b>Approach:</b> sort array; fix one index i, use two-pointer on remaining subarray to find pairs that sum to -nums[i]. Skip duplicates.</li>
+        </ul>
+        <div class="analogy">Analogy: You’re seating three friends so their combined tastes cancel out — put the loudest one, then look for two that balance them.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="Sort, for i in range(n): l=i+1, r=n-1; while l<r: check sum, move pointers, skip duplicates">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">
+        Sorting gives ordering to move pointers intelligently. Time O(n²).
+      </div>
+    </article>
+
+    <!-- CARD: Maximum Subarray (Kadane) -->
+    <article class="card sliding-window" data-title="maximum subarray kadane" data-tags="sliding-window,dp">
+      <div class="title">
+        <h3><i class="fa fa-wave-square"></i> Maximum Subarray (Kadane) — (LeetCode/GfG)</h3>
+        <div class="meta">Pattern: Dynamic, Sliding window idea</div>
+      </div>
+      <div class="desc">
+        Find contiguous subarray with maximum sum.
+        <div class="tags"><span class="tag">Kadane</span><span class="tag">O(n)</span></div>
+        <ul>
+          <li><b>Approach:</b> keep current_sum = max(num, current_sum+num); best = max(best, current_sum).</li>
+        </ul>
+        <div class="analogy">Analogy: Walking along a road of houses; keep track of your current happiness — if you drop below zero, start fresh at next house.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="cur = max(n, cur+n); best = max(best, cur)">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">
+        Kadane runs in O(n), works with negatives. For all negative arrays return max element.
+      </div>
+    </article>
+
+    <!-- CARD: Product of Array Except Self -->
+    <article class="card prefix-suffix" data-title="product of array except self" data-tags="prefix-suffix">
+      <div class="title">
+        <h3><i class="fa fa-flask"></i> Product of Array Except Self — (LeetCode)</h3>
+        <div class="meta">Pattern: Prefix & Suffix</div>
+      </div>
+      <div class="desc">
+        For each index, product of all elements except itself without division.
+        <div class="tags"><span class="tag">Prefix</span><span class="tag">Suffix</span></div>
+        <ul>
+          <li><b>Approach:</b> build left products array, then right products on the fly or in another pass; multiply left*right for answer.</li>
+        </ul>
+        <div class="analogy">Analogy: Pre-making left and right sauces — combine them to make dish for each seat without re-cooking.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="left[i]=left[i-1]*nums[i-1]; then multiply with running right product from end">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">
+        O(n) time, O(1) extra (if output array excluded). Watch for zeros.
+      </div>
+    </article>
+
+    <!-- CARD: Move Zeroes -->
+    <article class="card two-pointer" data-title="move zeroes" data-tags="two-pointer, inplace">
+      <div class="title">
+        <h3><i class="fa fa-arrow-right-arrow-left"></i> Move Zeroes — (LeetCode, GfG)</h3>
+        <div class="meta">Pattern: Two-pointer (in-place)</div>
+      </div>
+      <div class="desc">
+        Move all zeros to end while preserving order of non-zero elements.
+        <div class="tags"><span class="tag">In-place</span><span class="tag">Two-Pointer</span></div>
+        <ul>
+          <li><b>Approach:</b> keep a slow pointer for next non-zero position; iterate with fast pointer and swap when non-zero found.</li>
+        </ul>
+        <div class="analogy">Analogy: Think of packing a suitcase — keep non-zero items in order at the front and leave empty space (zeros) behind.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="j=0; for i in range(n): if a[i]!=0: swap(a[i],a[j]); j+=1">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">O(n) time, stable order preserved for non-zeros.</div>
+    </article>
+
+    <!-- CARD: Contains Duplicate -->
+    <article class="card hashmap" data-title="contains duplicate" data-tags="hashmap">
+      <div class="title">
+        <h3><i class="fa fa-circle-exclamation"></i> Contains Duplicate — (LeetCode)</h3>
+        <div class="meta">Pattern: HashMap / Set</div>
+      </div>
+      <div class="desc">
+        Check if any value appears more than once.
+        <div class="tags"><span class="tag">HashSet</span><span class="tag">O(n)</span></div>
+        <ul>
+          <li><b>Approach:</b> insert into set while scanning; if already present → duplicate.</li>
+        </ul>
+        <div class="analogy">Analogy: Checking guest list — if someone RSVPed twice, you spot them quickly.</div>
+      </div>
+      <div class="actions">
+        <button class="action-btn copy" data-snippet="seen=set(); for x in nums: if x in seen: return True; seen.add(x)">Copy hint</button>
+        <button class="action-btn" onclick="toggleDetails(this)">Explain</button>
+      </div>
+      <div class="details">Edge case: large inputs use memory; sort and check adjacent pairs as alternative O(1) extra (but changes array).</div>
+    </article>
+
+    <!-- CARD: Two Sum II - Input Array Is Sorted -->
+    <article class="card two-pointer" data-title="two sum ii" data-tags="two-pointer,sorted">
+      <div class="title"><h3><i class="fa fa-handshake"></i> Two Sum II — Sorted Array</h3><div class="meta">Two-pointer on sorted</div></div>
+      <div class="desc">
+        Given sorted array, find two numbers that sum to target.
+        <div class="tags"><span class="tag">Two-Pointer</span><span class="tag">O(n)</span></div>
+        <ul>
+          <li><b>Approach:</b> left=0, right=n-1; if sum>target right--, if sum<target left++.</li>
+        </ul>
+        <div class="analogy">Analogy: Two people at ends inching inward until they find a combo that matches the weight limit of a seesaw.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="l=0; r=n-1; while l<r: s=a[l]+a[r]; move l/r accordingly">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">No extra space; relies on sorting guarantee.</div>
+    </article>
+
+    <!-- CARD: Container With Most Water -->
+    <article class="card two-pointer" data-title="container with most water" data-tags="two-pointer,greedy">
+      <div class="title"><h3><i class="fa fa-water"></i> Container With Most Water — (LeetCode)</h3><div class="meta">Two-pointer, greedy</div></div>
+      <div class="desc">
+        Max area between two vertical lines.
+        <div class="tags"><span class="tag">Two-Pointer</span><span class="tag">Greedy</span></div>
+        <ul>
+          <li><b>Approach:</b> start with ends; compute area; move pointer with smaller height inward — greedy to possibly find taller line.</li>
+        </ul>
+        <div class="analogy">Analogy: Two people holding ropes at both sides — area bounded by shorter person; move the shorter person to try to increase area.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="l=0;r=n-1;area=max(area, min(h[l],h[r])*(r-l)); move smaller">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(n). Correctness via eliminating dominated choices.</div>
+    </article>
+
+    <!-- CARD: 3Sum Closest -->
+    <article class="card two-pointer sorting" data-title="3sum closest" data-tags="two-pointer,sorting">
+      <div class="title"><h3><i class="fa fa-compass"></i> 3Sum Closest — (LeetCode)</h3><div class="meta">Sorting + Two-pointer</div></div>
+      <div class="desc">
+        Find triplet with sum closest to target.
+        <div class="tags"><span class="tag">Two-Pointer</span></div>
+        <ul>
+          <li><b>Approach:</b> sort, fix i, two-pointer on rest; track closest difference.</li>
+        </ul>
+        <div class="analogy">Analogy: Trying to tune a radio to the nearest station when you know where one station sits — you adjust nearest knobs.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="sort, fix, two-pointer, track best_diff">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Edge: maintain best absolute difference, return sum not diff.</div>
+    </article>
+
+    <!-- CARD: Merge Intervals -->
+    <article class="card intervals sorting" data-title="merge intervals" data-tags="intervals,sorting">
+      <div class="title"><h3><i class="fa fa-calendar-days"></i> Merge Intervals — (LeetCode/GfG)</h3><div class="meta">Sorting + Greedy</div></div>
+      <div class="desc">
+        Merge all overlapping intervals.
+        <div class="tags"><span class="tag">Intervals</span><span class="tag">Sorting</span></div>
+        <ul>
+          <li><b>Approach:</b> sort by start; iterate merging current interval with next when overlapping; otherwise push new interval.</li>
+        </ul>
+        <div class="analogy">Analogy: Combining back-to-back meetings into a single block on a calendar.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="sort by start; track current interval; merge if next.start<=cur.end">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Edge: Adjacent intervals where end == next.start often considered overlapping — clarify problem.</div>
+    </article>
+
+    <!-- CARD: Insert Interval -->
+    <article class="card intervals sorting" data-title="insert interval" data-tags="intervals,sorting">
+      <div class="title"><h3><i class="fa fa-pen"></i> Insert Interval — (LeetCode)</h3><div class="meta">Sorting + Greedy</div></div>
+      <div class="desc">
+        Insert an interval into sorted non-overlapping intervals and merge if necessary.
+        <div class="tags"><span class="tag">Intervals</span></div>
+        <ul>
+          <li><b>Approach:</b> collect intervals before new (no overlap), merge overlapping ones, append rest.</li>
+        </ul>
+        <div class="analogy">Analogy: Inserting a new meeting into an already booked day and combining overlaps.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="add left, merge mid, add right">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Linear time with careful pointer movement.</div>
+    </article>
+
+    <!-- CARD: Subarray Sum Equals K -->
+    <article class="card hashmap prefix-suffix" data-title="subarray sum equals k" data-tags="hashmap,prefix-sum">
+      <div class="title"><h3><i class="fa fa-dollar-sign"></i> Subarray Sum Equals K — (LeetCode/GfG)</h3><div class="meta">Prefix sum + HashMap</div></div>
+      <div class="desc">
+        Count subarrays with sum = k (may contain negatives).
+        <div class="tags"><span class="tag">Prefix-Sum</span><span class="tag">HashMap</span></div>
+        <ul>
+          <li><b>Approach:</b> running prefix sum; for each prefix sum S, number of previous prefixes with S-k contributes to count; store counts in map.</li>
+        </ul>
+        <div class="analogy">Analogy: Tracking your bank balance over time — if your balance was X before and is X+k now, the transaction in between sums to k.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="map[0]=1; for s in running_sum: count+=map.get(s-k,0); map[s]+=1">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Works with negatives; O(n) time, O(n) space.</div>
+    </article>
+
+    <!-- CARD: Count Subarrays with Sum K (variants) -->
+    <article class="card hashmap prefix-suffix" data-title="count subarrays sum k" data-tags="hashmap,prefix-sum">
+      <div class="title"><h3><i class="fa fa-list"></i> Count Subarrays with Sum K (Variants)</h3><div class="meta">Prefix-sum + hashmap</div></div>
+      <div class="desc">
+        Variants: number of subarrays, subarray with max length, with positive-only — each uses sliding/prefix.
+        <div class="tags"><span class="tag">Variants</span><span class="tag">O(n)</span></div>
+        <ul>
+          <li><b>Approach:</b> choose prefix/hashing for negatives; sliding window for only positives.</li>
+        </ul>
+        <div class="analogy">Analogy: Finding time windows where your daily steps add up to a goal — different strategies if steps never decrease vs if they can go down.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="positives -> sliding; with negatives -> prefix+map">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Remember: Positive-only → sliding window; general → prefix+map.</div>
+    </article>
+
+    <!-- CARD: Rotate Array -->
+    <article class="card rotate" data-title="rotate array" data-tags="rotate,reverse">
+      <div class="title"><h3><i class="fa fa-rotate-right"></i> Rotate Array — (LeetCode)</h3><div class="meta">Reverse trick / Cyclic</div></div>
+      <div class="desc">
+        Rotate array to right by k steps.
+        <div class="tags"><span class="tag">Reverse Trick</span></div>
+        <ul>
+          <li><b>Approach:</b> k%=n; reverse whole array; reverse first k; reverse remaining n-k.</li>
+        </ul>
+        <div class="analogy">Analogy: Like turning a circular queue so that last k people move to front by flipping groups.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="k%=n; reverse(0,n-1); reverse(0,k-1); reverse(k,n-1)">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">In-place O(n). Alternative: use extra array O(n).</div>
+    </article>
+
+    <!-- CARD: Search in Rotated Sorted Array -->
+    <article class="card sorting two-pointer" data-title="search in rotated sorted array" data-tags="binary-search,sorting">
+      <div class="title"><h3><i class="fa fa-magnifying-glass"></i> Search in Rotated Sorted Array — (LeetCode)</h3><div class="meta">Modified Binary Search</div></div>
+      <div class="desc">
+        Find target in rotated sorted array in O(log n).
+        <div class="tags"><span class="tag">Binary Search</span></div>
+        <ul>
+          <li><b>Approach:</b> binary search but determine which half is sorted each step, then restrict search to appropriate side.</li>
+        </ul>
+        <div class="analogy">Analogy: Looking up a name in a shifted alphabetical phonebook — check which half is sorted first.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="binary search; check sorted half; decide where t lies">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Careful with duplicates (LeetCode variants), which may degrade to O(n).</div>
+    </article>
+
+    <!-- CARD: Find Minimum in Rotated Sorted Array -->
+    <article class="card sorting" data-title="find minimum in rotated sorted array" data-tags="binary-search,sorting">
+      <div class="title"><h3><i class="fa fa-arrow-down"></i> Find Minimum in Rotated Sorted Array — (LeetCode)</h3><div class="meta">Binary Search</div></div>
+      <div class="desc">
+        Find smallest element in rotated sorted array.
+        <div class="tags"><span class="tag">Binary Search</span></div>
+        <ul>
+          <li><b>Approach:</b> similar to search: compare mid with right to determine which side contains minimum; move pointers accordingly.</li>
+        </ul>
+        <div class="analogy">Analogy: Finding the bottom of a tilted stack of plates by checking which side slopes down.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="compare mid and right; narrow down side with min">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Watch duplicates — variant exists with duplicates.</div>
+    </article>
+
+    <!-- CARD: Merge Sorted Array -->
+    <article class="card two-pointer sorting" data-title="merge sorted array" data-tags="merge,two-pointer">
+      <div class="title"><h3><i class="fa fa-code-merge"></i> Merge Sorted Array — (LeetCode)</h3><div class="meta">Two-pointer, in-place</div></div>
+      <div class="desc">
+        Merge two sorted arrays where first has enough tail space.
+        <div class="tags"><span class="tag">Two-Pointer</span><span class="tag">In-place</span></div>
+        <ul>
+          <li><b>Approach:</b> fill from end: compare tail elements of both arrays and place larger at end.</li>
+        </ul>
+        <div class="analogy">Analogy: Packing two ordered stacks into one big ordered shelf from the back so you don't overwrite items.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="i=m-1;j=n-1;k=m+n-1; while j>=0...">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Avoid extra space by filling backwards.</div>
+    </article>
+
+    <!-- CARD: Top K Frequent Elements -->
+    <article class="card hashmap sorting" data-title="top k frequent elements" data-tags="hashmap,heap,sorting">
+      <div class="title"><h3><i class="fa fa-arrow-trend-up"></i> Top K Frequent Elements — (LeetCode)</h3><div class="meta">HashMap + Heap / Bucket</div></div>
+      <div class="desc">
+        Return k most frequent items.
+        <div class="tags"><span class="tag">HashMap</span><span class="tag">Heap</span></div>
+        <ul>
+          <li><b>Approach:</b> count frequencies; options: use min-heap of size k; or bucket sort by freq for O(n).</li>
+        </ul>
+        <div class="analogy">Analogy: Finding the top-selling products — tally sales, then pick the top k sellers.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="count=Counter(nums); bucket=freq->list; return top k">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Pick bucket if max freq ~ n to achieve O(n) time.</div>
+    </article>
+
+    <!-- CARD: Majority Element -->
+    <article class="card hashmap sorting" data-title="majority element boyer moore" data-tags="boyer-moore,hashmap">
+      <div class="title"><h3><i class="fa fa-thumbs-up"></i> Majority Element — (LeetCode)</h3><div class="meta">Boyer-Moore / HashMap</div></div>
+      <div class="desc">
+        Find element that appears > n/2 times.
+        <div class="tags"><span class="tag">Boyer-Moore</span></div>
+        <ul>
+          <li><b>Approach:</b> Boyer-Moore Voting: keep candidate and count; pass yields majority.</li>
+        </ul>
+        <div class="analogy">Analogy: In a noisy room, the loudest recurring voice that never disappears is the majority speaker.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="candidate,count; for x: if count==0: cand=x; count+= (1 if x==cand else -1)">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">If majority existence not guaranteed, verify candidate in second pass.</div>
+    </article>
+
+    <!-- CARD: Longest Increasing Subsequence -->
+    <article class="card sorting dp" data-title="longest increasing subsequence lis" data-tags="dp,binary-search">
+      <div class="title"><h3><i class="fa fa-chart-line"></i> Longest Increasing Subsequence (LIS)</h3><div class="meta">DP / Patience Sorting (binary search)</div></div>
+      <div class="desc">
+        Length of LIS.
+        <div class="tags"><span class="tag">DP</span><span class="tag">Binary-Search</span></div>
+        <ul>
+          <li><b>Approach:</b> O(n²) DP: dp[i]=1+max(dp[j]) for j<i if a[j]<a[i]. O(n log n): maintain tails array where tails[len]=min tail of increasing subsequence of len; binary search to place element.</li>
+        </ul>
+        <div class="analogy">Analogy: Sorting piles of cards (patience sorting) — each pile top tracks smallest tail of that length.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="tails=[]; for x: pos=bisect_left(tails,x); if pos==len(tails): tails.append(x) else tails[pos]=x">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Patience method gives length only; reconstruct with parent pointers if needed.</div>
+    </article>
+
+    <!-- CARD: Find Disappeared Numbers / Missing Number -->
+    <article class="card hashing two-pointer" data-title="missing number find disappeared" data-tags="inplace,hashing">
+      <div class="title"><h3><i class="fa fa-question"></i> Find Missing Number / Disappeared Numbers — (LeetCode)</h3><div class="meta">Index marking / Summation / XOR</div></div>
+      <div class="desc">
+        Find missing elements from 1..n.
+        <div class="tags"><span class="tag">In-place</span><span class="tag">XOR</span></div>
+        <ul>
+          <li><b>Approach:</b> mark visited by negating index or swap elements to correct positions; XOR/sum formula for single missing.</li>
+        </ul>
+        <div class="analogy">Analogy: Numbering lockers; misplaced labels tell you which lockers are empty.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="for x in nums: nums[abs(x)-1]*=-1; missing=idx where >0">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Index-based marking requires values 1..n; be careful with sign and duplicates.</div>
+    </article>
+
+    <!-- CARD: First Missing Positive -->
+    <article class="card inplace" data-title="first missing positive" data-tags="inplace,index-swap">
+      <div class="title"><h3><i class="fa fa-hashtag"></i> First Missing Positive — (LeetCode)</h3><div class="meta">Index-swap</div></div>
+      <div class="desc">
+        Find smallest positive missing integer.
+        <div class="tags"><span class="tag">In-place</span></div>
+        <ul>
+          <li><b>Approach:</b> for each i, place nums[i] to position nums[i]-1 by swapping until stuck; then first index where nums[i]!=i+1 is answer.</li>
+        </ul>
+        <div class="analogy">Analogy: Putting numbered keys into correct slots; first empty slot number is missing key.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="while 1<=a[i]<=n and a[a[i]-1]!=a[i]: swap">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(n) time, O(1) extra. Careful with invalid numbers and duplicates.</div>
+    </article>
+
+    <!-- CARD: Find Peak Element -->
+    <article class="card binary-search" data-title="find peak element" data-tags="binary-search">
+      <div class="title"><h3><i class="fa fa-mountain"></i> Find Peak Element — (LeetCode)</h3><div class="meta">Binary Search</div></div>
+      <div class="desc">
+        Find index of local peak (a[i]>neighbors).
+        <div class="tags"><span class="tag">Binary-search</span></div>
+        <ul>
+          <li><b>Approach:</b> binary search: if mid < mid+1, move right; else move left — peak exists in direction of incline.</li>
+        </ul>
+        <div class="analogy">Analogy: Climbing a hill and walking to the higher side leads to a peak.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="if a[mid] < a[mid+1]: l=mid+1 else r=mid">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(log n). Duplicate values may have multiple valid peaks.</div>
+    </article>
+
+    <!-- CARD: Partition labels / smallest subarray with same degree -->
+    <article class="card hashmap sliding-window" data-title="degree of array partition labels smallest subarray with same degree" data-tags="hashmap,sliding-window">
+      <div class="title"><h3><i class="fa fa-layer-group"></i> Smallest Subarray with Same Degree / Partition Labels</h3><div class="meta">HashMap + index tracking</div></div>
+      <div class="desc">
+        Smallest window containing same frequency (degree) as whole array.
+        <div class="tags"><span class="tag">HashMap</span></div>
+        <ul>
+          <li><b>Approach:</b> track first and last occurrence of each element and counts; degree = max count; find min last-first+1 among degree elements.</li>
+        </ul>
+        <div class="analogy">Analogy: If some songs play the most in a playlist, find the shortest segment that includes the same amount of plays.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="first,last,count; degree=max(count); answer=min(last-first+1 for elems with count==degree)">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(n) time and space for maps.</div>
+    </article>
+
+    <!-- CARD: Valid Mountain Array -->
+    <article class="card two-pointer" data-title="valid mountain array" data-tags="two-pointer">
+      <div class="title"><h3><i class="fa fa-mountain-sun"></i> Valid Mountain Array</h3><div class="meta">Two-pointer / scan</div></div>
+      <div class="desc">
+        Check if array strictly increases then strictly decreases (one peak).
+        <div class="tags"><span class="tag">Two-Pointer</span></div>
+        <ul>
+          <li><b>Approach:</b> scan up while increasing, scan down while decreasing, check that both consumed entire array and peak not at ends.</li>
+        </ul>
+        <div class="analogy">Analogy: Hiking up a mountain then trekking down — there must be a single summit.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="i=0; while a[i]<a[i+1]: i+=1; while a[i]>a[i+1]: i+=1; return i==n-1 and i!=0">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Edge: need length >=3.</div>
+    </article>
+
+    <!-- CARD: Find All Numbers Disappeared in an Array (variant) -->
+    <article class="card inplace hashing" data-title="find all numbers disappeared in an array" data-tags="inplace">
+      <div class="title"><h3><i class="fa fa-box-open"></i> Find All Numbers Disappeared in an Array — (LeetCode)</h3><div class="meta">Index marking</div></div>
+      <div class="desc">
+        Return all numbers in 1..n not appearing in array.
+        <div class="tags"><span class="tag">In-place</span></div>
+        <ul>
+          <li><b>Approach:</b> for each x, mark index abs(x)-1 negative; remaining positive indices +1 are missing numbers.</li>
+        </ul>
+        <div class="analogy">Analogy: Put stickers with numbers on boxes; unmarked boxes mean missing stickers.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="for x in a: a[abs(x)-1]*=-1; answer=[i+1 for i,v in enumerate(a) if v>0]">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Works when values are 1..n.</div>
+    </article>
+
+    <!-- CARD: Kadane extension: Max Subarray with indices -->
+    <article class="card sliding-window dp" data-title="max subarray with indices" data-tags="kadane,sliding-window">
+      <div class="title"><h3><i class="fa fa-list-ol"></i> Max Subarray — with Indices</h3><div class="meta">Kadane + tracking</div></div>
+      <div class="desc">
+        Also return start and end indices of max subarray.
+        <div class="tags"><span class="tag">Kadane</span></div>
+        <ul>
+          <li><b>Approach:</b> when current sum restarts, mark temp start; when best updates, record start,end.</li>
+        </ul>
+        <div class="analogy">Analogy: Not only remembering the happiest stretch, but exactly when it started and ended.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="track currStart, when cur<0 set start=i+1; update best and indices when cur>best">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Useful in retrieving the subarray, not just the sum.</div>
+    </article>
+
+    <!-- CARD: Longest Consecutive Sequence -->
+    <article class="card hashmap" data-title="longest consecutive sequence" data-tags="hashmap,set">
+      <div class="title"><h3><i class="fa fa-link"></i> Longest Consecutive Sequence — (LeetCode)</h3><div class="meta">HashSet</div></div>
+      <div class="desc">
+        Longest run of consecutive integers.
+        <div class="tags"><span class="tag">HashSet</span></div>
+        <ul>
+          <li><b>Approach:</b> store in set; for each num where num-1 not in set, expand forward counting consecutive numbers; track max.</li>
+        </ul>
+        <div class="analogy">Analogy: Given scattered train cars with numbers, find the longest sequence of connected car numbers starting where no car before it exists.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="s=set(a); for x in s: if x-1 not in s: cnt=1 while x+cnt in s: cnt+=1">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(n) average time. Works well with large ranges.</div>
+    </article>
+
+    <!-- CARD: Next Permutation -->
+    <article class="card inplace sorting" data-title="next permutation" data-tags="greedy,reverse">
+      <div class="title"><h3><i class="fa fa-angle-right"></i> Next Permutation — (LeetCode)</h3><div class="meta">Greedy + Reverse</div></div>
+      <div class="desc">
+        Rearrange numbers to next lexicographic permutation.
+        <div class="tags"><span class="tag">Greedy</span><span class="tag">In-place</span></div>
+        <ul>
+          <li><b>Approach:</b> find longest non-increasing suffix; swap pivot with next larger in suffix; reverse suffix.</li>
+        </ul>
+        <div class="analogy">Analogy: Like finding the next lexicographic word by altering the rightmost possible letters minimally.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="find i where a[i]<a[i+1]; find j>i with a[j]>a[i]; swap; reverse(i+1,end)">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Corner: if whole array non-increasing, reverse whole to get smallest permutation.</div>
+    </article>
+
+    <!-- CARD: Search Insert Position -->
+    <article class="card binary-search" data-title="search insert position" data-tags="binary-search">
+      <div class="title"><h3><i class="fa fa-search"></i> Search Insert Position — (LeetCode)</h3><div class="meta">Binary Search</div></div>
+      <div class="desc">
+        Find index to insert target in sorted array.
+        <div class="tags"><span class="tag">Binary Search</span></div>
+        <ul>
+          <li><b>Approach:</b> classical lower_bound binary search implementation.</li>
+        </ul>
+        <div class="analogy">Analogy: Inserting a new book into a sorted bookshelf at the right place using binary decisions.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="binary search for first index where a[i]>=target">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Works for duplicates; returns first pos to keep sorted order.</div>
+    </article>
+
+    <!-- CARD: Find Pivot Index -->
+    <article class="card prefix-suffix" data-title="pivot index" data-tags="prefix-sum">
+      <div class="title"><h3><i class="fa fa-balance-scale"></i> Pivot Index — (LeetCode)</h3><div class="meta">Prefix Sum</div></div>
+      <div class="desc">
+        Index where sum of left equals sum of right.
+        <div class="tags"><span class="tag">Prefix Sum</span></div>
+        <ul>
+          <li><b>Approach:</b> total_sum known; iterate keeping left_sum; if left_sum == total_sum - left_sum - nums[i] then pivot.</li>
+        </ul>
+        <div class="analogy">Analogy: Balancing scale by placing weights left and right; pivot is balance point.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="total=sum(a); left=0; for i: if left==total-left-a[i]: return i; left+=a[i]">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">If multiple pivots, return leftmost depending on problem statement.</div>
+    </article>
+
+    <!-- CARD: Gas Station (circular array) -->
+    <article class="card greedy" data-title="gas station" data-tags="greedy,cycle">
+      <div class="title"><h3><i class="fa fa-gas-pump"></i> Gas Station — (LeetCode)</h3><div class="meta">Greedy</div></div>
+      <div class="desc">
+        Find start index to travel circular gas stations.
+        <div class="tags"><span class="tag">Greedy</span></div>
+        <ul>
+          <li><b>Approach:</b> If total gas >= total cost, a solution exists; maintain current tank and start index; when tank negative, reset start to next index and zero tank.</li>
+        </ul>
+        <div class="analogy">Analogy: If your car runs out somewhere, you cannot start from any station within that failed segment; jump to next possible start.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="total=0; tank=0; start=0; for i: total+=gas[i]-cost[i]; tank+=; if tank<0: start=i+1; tank=0">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">O(n). If total < 0 then impossible.</div>
+    </article>
+
+    <!-- CARD: Sliding Window - Longest Substring Without Repeating Characters (array-like string) -->
+    <article class="card sliding-window hashmap" data-title="longest substring without repeating characters" data-tags="sliding-window,hashmap">
+      <div class="title"><h3><i class="fa fa-text-height"></i> Longest Substring Without Repeating Characters — (LeetCode)</h3><div class="meta">Sliding window + hashmap</div></div>
+      <div class="desc">
+        Longest substring with all unique characters (string ~ array of chars).
+        <div class="tags"><span class="tag">Sliding Window</span></div>
+        <ul>
+          <li><b>Approach:</b> maintain window [l,r); expand r, if char seen move l to lastSeen+1; track max length.</li>
+        </ul>
+        <div class="analogy">Analogy: Keeping guests at a party with unique names — if duplicate arrives, move the start of party to forget previous occurrence.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="map stores last index; l=max(l,map[c]+1); update map[c]=r">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Works with unicode if you handle char encoding properly.</div>
+    </article>
+
+    <!-- CARD: Minimum Size Subarray Sum -->
+    <article class="card sliding-window two-pointer" data-title="minimum size subarray sum" data-tags="sliding-window,two-pointer">
+      <div class="title"><h3><i class="fa fa-stopwatch"></i> Minimum Size Subarray Sum — (LeetCode)</h3><div class="meta">Sliding Window</div></div>
+      <div class="desc">
+        Smallest length of contiguous subarray with sum >= s.
+        <div class="tags"><span class="tag">Sliding Window</span></div>
+        <ul>
+          <li><b>Approach:</b> expand right until sum >= s then shrink left while maintaining sum >= s to minimize length.</li>
+        </ul>
+        <div class="analogy">Analogy: Keep adding items to fill a knapsack until threshold reached, then remove extras from front to make it tight.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="l=0; cur=0; for r: cur+=a[r]; while cur>=s: ans=min(ans,r-l+1); cur-=a[l]; l+=1">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Only valid for non-negative nums; otherwise use prefix+map.</div>
+    </article>
+
+    <!-- CARD: K-diff Pairs in an Array -->
+    <article class="card hashmap" data-title="k-diff pairs" data-tags="hashmap,two-pointer">
+      <div class="title"><h3><i class="fa fa-handshake-angle"></i> K-diff Pairs in an Array — (LeetCode)</h3><div class="meta">HashMap / Two-pointer</div></div>
+      <div class="desc">
+        Count unique pairs with difference k.
+        <div class="tags"><span class="tag">HashMap</span></div>
+        <ul>
+          <li><b>Approach:</b> if k>0 use set and check x+k in set; if k==0 count elements with freq>1.</li>
+        </ul>
+        <div class="analogy">Analogy: Looking for twins separated by k birthdays — check who has a partner k years older.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="if k>0: set & check; if k==0: count freq>1">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Careful deduplication; sort+two-pointer can be used too.</div>
+    </article>
+
+    <!-- CARD: Happy Number (loop detection in sequence) -->
+    <article class="card cycle two-pointer" data-title="happy number cycle detection" data-tags="floyd,two-pointer">
+      <div class="title"><h3><i class="fa fa-smile"></i> Happy Number — (LeetCode)</h3><div class="meta">Cycle detection (Floyd)</div></div>
+      <div class="desc">
+        Determine if repeated sum-of-squares sequence ends at 1.
+        <div class="tags"><span class="tag">Cycle-detection</span></div>
+        <ul>
+          <li><b>Approach:</b> Floyd’s tortoise & hare: advance slow by f(x), fast by f(f(x)), see if they meet at 1.</li>
+        </ul>
+        <div class="analogy">Analogy: Two hikers walking at different speeds; if they loop endlessly they meet in a cycle, else one reaches the destination 1.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="slow=f(slow); fast=f(f(fast)); check equality">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Simple and elegant for cycle detection without extra memory.</div>
+    </article>
+
+    <!-- CARD: Wiggle Sort -->
+    <article class="card sorting" data-title="wiggle sort" data-tags="sorting,inplace">
+      <div class="title"><h3><i class="fa fa-arrows-up-down-left-right"></i> Wiggle Sort — (LeetCode)</h3><div class="meta">Sorting / Greedy</div></div>
+      <div class="desc">
+        Rearrange nums such that a0<=a1>=a2<=a3...
+        <div class="tags"><span class="tag">In-place</span></div>
+        <ul>
+          <li><b>Approach:</b> one pass swapping when pattern violated (greedy); or sort and interleave halves for strict variants.</li>
+        </ul>
+        <div class="analogy">Analogy: Arrange books on shelf alternating tall and short to create a wavy skyline.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="for i: if (i%2==0 and a[i]>a[i+1]) swap; if (i%2==1 and a[i]<a[i+1]) swap">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Multiple variants exist; check strictness of inequalities.</div>
+    </article>
+
+    <!-- CARD: Partitioning problems (Dutch National Flag) -->
+    <article class="card two-pointer sorting" data-title="dutch national flag sort colors" data-tags="dnf,two-pointer">
+      <div class="title"><h3><i class="fa fa-flag"></i> Sort Colors / Dutch National Flag — (LeetCode)</h3><div class="meta">3-way partition</div></div>
+      <div class="desc">
+        Sort array containing 0,1,2 in one pass.
+        <div class="tags"><span class="tag">DNF</span></div>
+        <ul>
+          <li><b>Approach:</b> low, mid, high pointers; swap mid with low (if 0) or high (if 2) and move pointers accordingly.</li>
+        </ul>
+        <div class="analogy">Analogy: Sorting red, white, blue balls into their bins by sweeping once.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="low=mid=0; high=n-1; while mid<=high: handle a[mid] cases">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">In-place O(n). Very common interview micro-problem.</div>
+    </article>
+
+    <!-- CARD: Sliding Window - Longest Repeating Character Replacement -->
+    <article class="card sliding-window hashmap" data-title="character replacement" data-tags="sliding-window,hashmap">
+      <div class="title"><h3><i class="fa fa-font"></i> Longest Repeating Character Replacement — (LeetCode)</h3><div class="meta">Sliding window + freq map</div></div>
+      <div class="desc">
+        Maximize window length after replacing up to k chars to make all same.
+        <div class="tags"><span class="tag">Sliding Window</span></div>
+        <ul>
+          <li><b>Approach:</b> maintain counts of chars in window; track max_freq in window; if window_len - max_freq > k -> shrink left.</li>
+        </ul>
+        <div class="analogy">Analogy: Repainting letters in a sign until the majority look identical; if too many mismatches, shrink segment.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="maxf=max(count.values()); while r-l+1 - maxf > k: shrink l">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Important optimization: not recomputing max_freq every shrink yields O(n) behaviour when you track it carefully.</div>
+    </article>
+
+    <!-- CARD: Peak to Peak / Skyline (array variant) -->
+    <article class="card greedy" data-title="skyline peak" data-tags="greedy">
+      <div class="title"><h3><i class="fa fa-city"></i> Skyline / Peak Variants</h3><div class="meta">Greedy / Stack</div></div>
+      <div class="desc">
+        Problems where you compute visible skyline or peaks.
+        <div class="tags"><span class="tag">Stack</span><span class="tag">Greedy</span></div>
+        <ul>
+          <li><b>Approach:</b> often sweep line with stack to maintain active heights; pop when lower or build result array.</li>
+        </ul>
+        <div class="analogy">Analogy: Standing in a crowd, only taller people change your view — drop smaller ones behind.</div>
+      </div>
+      <div class="actions"><button class="action-btn copy" data-snippet="use stack to maintain descending heights; pop until higher encountered">Copy hint</button><button class="action-btn" onclick="toggleDetails(this)">Explain</button></div>
+      <div class="details">Useful when problem asks for visible boundaries or skyline outline.</div>
+    </article>
+
+    <!-- CARD: Misc / Practice reminders -->
+    <article class="card" data-title="practice reminders" data-tags="tips">
+      <div class="title"><h3><i class="fa fa-lightbulb"></i> Practice Reminders & Patterns</h3><div class="meta">Cheat sheet</div></div>
+      <div class="desc">
+        <ul>
+          <li><b>Identify pattern first:</b> two-pointer, sliding window, prefix/suffix, stack, hashmap, binary search, greedy, DP.</li>
+          <li><b>Constraints=>Strategy:</b> n ≤ 10^5 → O(n log n) or O(n); n ≤ 10^3 → O(n²) may pass.</li>
+          <li><b>Edge cases:</b> duplicates, negatives, zero, empty array, single element.</li>
+          <li><b>Memory vs time:</b> can you do in-place? If yes and asked, prefer O(1) extra.</li>
+          <li><b>Analogies:</b> always attach a small real-life analogy — that’s how you remember patterns forever.</li>
+        </ul>
+      </div>
+      <div class="actions"><button class="action-btn" onclick="copyText('Identify pattern first; map constraints to approach; practice analogies')">Copy tips</button></div>
+    </article>
+
+  </div> <!-- /grid -->
+
+  <div class="footer">
+    <h4>How to use this page</h4>
+    <p>Use the search box above to find a problem fast. Click chips to filter by pattern. Expand a card to read details and copy one-line hints. If you want a printable PDF or a version with interactive animated demos (pointer moves, sliding window), tell me which patterns and I’ll add them.</p>
+  </div>
+</div>
+
+<script>
+/* JS: filtering, search, expand, copy hints */
+const chips = document.querySelectorAll('.chip');
+const grid = document.getElementById('grid');
+const cards = Array.from(document.querySelectorAll('.card'));
+const search = document.getElementById('search');
+const clearSearch = document.getElementById('clearSearch');
+
+function setActiveChip(el){
+  chips.forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+}
+
+chips.forEach(c=>{
+  c.addEventListener('click', ()=> {
+    setActiveChip(c);
+    filter(c.dataset.filter);
+  })
+})
+
+function filter(filterBy){
+  if(filterBy==='all'){
+    cards.forEach(card => card.style.display='block');
+    return;
+  }
+  cards.forEach(card => {
+    if(card.classList.contains(filterBy)) card.style.display='block';
+    else card.style.display='none';
+  });
+}
+
+/* Search by title or tags */
+search.addEventListener('input', (e)=>{
+  const q = e.target.value.trim().toLowerCase();
+  if(!q){ cards.forEach(c=>c.style.display='block'); return; }
+  cards.forEach(card=>{
+    const title = card.dataset.title || '';
+    const tags = card.dataset.tags || '';
+    if(title.includes(q) || tags.includes(q)) card.style.display='block';
+    else card.style.display='none';
+  })
+});
+clearSearch.addEventListener('click', ()=>{
+  search.value=''; search.dispatchEvent(new Event('input'));
+})
+
+/* toggle details */
+function toggleDetails(btn){
+  const card = btn.closest('.card');
+  card.classList.toggle('open');
+  // tiny animation
+  if(card.classList.contains('open')){
+    card.style.boxShadow = '0 28px 60px rgba(2,6,23,0.95)';
+  } else {
+    card.style.boxShadow = '';
+  }
+}
+
+/* copy action for hint */
+document.querySelectorAll('.action-btn.copy').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const txt = btn.dataset.snippet || btn.textContent;
+    copyText(txt);
+    btn.textContent = 'Copied ✓'; setTimeout(()=>btn.innerHTML = '<i class="fa fa-copy"></i> Copy hint', 1200);
+  })
+});
+
+function copyText(txt){
+  navigator.clipboard?.writeText(txt.toString()).catch(()=>{ /* ignore */});
+}
+
+/* small staggered reveal animation */
+cards.forEach((c,i)=>{ c.style.animationDelay = (i*40)+'ms' })
+
+/* keyboard: '/' focuses search */
+document.addEventListener('keydown', (e)=>{
+  if(e.key === '/') {
+    e.preventDefault(); search.focus();
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product of Array Except Self - Learn from Zero</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #1C1C2E;
+  color: #fff;
+  margin: 0;
+  padding: 20px;
+}
+
+h1,h2,h3 { text-align: center; }
+
+h1 { 
+  color: #FFA500; 
+  text-shadow: 0 0 10px #FFB347; 
+}
+
+.panel {
+  background: #2C2C54;
+  padding: 20px;
+  border-radius: 15px;
+  margin: 20px auto;
+  max-width: 1000px;
+  box-shadow: 0 0 20px rgba(255,165,0,0.3);
+}
+
+.array-container {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 15px 0;
+}
+
+.box {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  font-size: 1.2rem;
+  box-shadow: 0 0 5px rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.color-input { background: #FF6F61; }
+.color-prefix { background: #FFD700; }
+.color-suffix { background: #6BCB77; }
+.color-output { background: #4D96FF; }
+
+.pointer {
+  position: absolute;
+  top: -20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+}
+
+.controls {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+input, button {
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: none;
+  font-size: 1rem;
+}
+
+input {
+  width: 150px;
+  text-align: center;
+  background: #3B3B98;
+  color: #fff;
+}
+
+button {
+  background: #FFA500;
+  color: #1C1C2E;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: #FFB347;
+  transform: scale(1.05);
+}
+
+.explanation {
+  background: #2C2C54;
+  padding: 15px 20px;
+  border-radius: 12px;
+  color: #F0F0F0;
+  font-size: 1rem;
+  line-height: 1.5;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.step {
+  border-left: 4px solid #FFA500;
+  padding: 8px 15px;
+  margin: 8px 0;
+  background: #1C1C38;
+  border-radius: 6px;
+  animation: fadeIn 0.4s ease;
+}
+
+.step-number { font-weight: bold; color: #FFB347; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+
+.practice, .fun-facts {
+  background: #1C1C38;
+  padding: 15px;
+  border-radius: 12px;
+  margin-top: 15px;
+}
+
+.practice a, .fun-facts a { color: #FFB347; text-decoration: none; }
+.practice a:hover, .fun-facts a:hover { text-decoration: underline; }
+
+</style>
+</head>
+<body>
+
+<h1>⚙️ Product of Array Except Self</h1>
+
+<div class="panel">
+  <h2>📘 What is it?</h2>
+  <p>Given an array, calculate a new array where each element is the <b>product of all other elements except itself</b>. No division is allowed. Think of it as sharing chocolates 🍫: how many would each friend get if you skip their own?</p>
+</div>
+
+<div class="panel">
+  <h2>🛠️ Approach & Patterns</h2>
+  <ul>
+    <li>Use <b>prefix products</b> → multiply elements before current index.</li>
+    <li>Use <b>suffix products</b> → multiply elements after current index.</li>
+    <li>Combine prefix and suffix → output array.</li>
+    <li>Patterns to remember:
+      <ul>
+        <li>Prefix & Suffix multiplication (classic)</li>
+        <li>Single-pass with extra variable</li>
+        <li>Adaptable to sum, XOR, or other “except self” problems</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<div class="panel">
+  <h2>Visualizer</h2>
+  <div class="array-container" id="inputArray"></div>
+  <div class="array-container" id="prefixArray"></div>
+  <div class="array-container" id="suffixArray"></div>
+  <div class="array-container" id="outputArray"></div>
+
+  <div class="controls">
+    <button id="randomBtn">🎲 Random Array</button>
+    <button id="manualBtn">✏️ Enter Array</button>
+    <button id="nextBtn">▶️ Next Step</button>
+    <button id="resetBtn">🔄 Reset</button>
+  </div>
+</div>
+
+<div class="panel explanation" id="explanation">
+  <div class="step"><div class="step-number">Intro:</div> Press <b>Next Step</b> to see the algorithm in action!</div>
+</div>
+
+<div class="panel practice">
+  <h3>💻 Practice Problems</h3>
+  <ul>
+    <li>LeetCode: <a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">238. Product of Array Except Self</a></li>
+    <li>Hackerrank: <a href="https://www.hackerrank.com/" target="_blank">Array Manipulation</a></li>
+    <li>Codeforces: <a href="https://codeforces.com/problemset?tags=implementation" target="_blank">Implementation Tag</a></li>
+  </ul>
+</div>
+
+<div class="panel fun-facts">
+  <h3>🎉 Fun Facts & Tips</h3>
+  <ul>
+    <li>You can solve this <b>without using division</b>.</li>
+    <li>This approach teaches <b>prefix/suffix patterns</b> which is useful in many array problems.</li>
+    <li>Challenge: Try solving it in <b>one pass</b> using only one output array!</li>
+  </ul>
+</div>
+
+<script>
+let arr = [], prefix = [], suffix = [], output = [];
+let step = 0;
+
+const inputDiv = document.getElementById("inputArray");
+const prefixDiv = document.getElementById("prefixArray");
+const suffixDiv = document.getElementById("suffixArray");
+const outputDiv = document.getElementById("outputArray");
+const explanation = document.getElementById("explanation");
+
+function renderArray(div, array, colorClass, highlight=-1) {
+  div.innerHTML = "";
+  array.forEach((val,i)=>{
+    const box = document.createElement("div");
+    box.className = "box " + colorClass;
+    box.textContent = val;
+    if(i === highlight){
+      const p = document.createElement("div");
+      p.className = "pointer"; p.textContent="▶"; box.appendChild(p);
+    }
+    div.appendChild(box);
+  });
+}
+
+function addStep(text){
+  const div = document.createElement("div");
+  div.className = "step";
+  div.innerHTML = `<div class='step-number'>Step ${step+1}:</div> ${text}`;
+  explanation.appendChild(div);
+  explanation.scrollTop = explanation.scrollHeight;
+}
+
+function randomArray(size=6){
+  arr = Array.from({length:size},()=>Math.floor(Math.random()*5+1));
+  resetState();
+}
+
+function manualArray(){
+  const input = prompt("Enter numbers separated by commas:");
+  if(!input) return;
+  arr = input.split(",").map(Number);
+  resetState();
+}
+
+function resetState(){
+  prefix = Array(arr.length).fill(1);
+  suffix = Array(arr.length).fill(1);
+  output = Array(arr.length).fill(1);
+  step = 0;
+  explanation.innerHTML="";
+  addStep("New session started. Press Next Step to calculate prefix products.");
+  renderAll();
+}
+
+function renderAll(highlight=-1){
+  renderArray(inputDiv, arr, "color-input", highlight);
+  renderArray(prefixDiv, prefix, "color-prefix");
+  renderArray(suffixDiv, suffix, "color-suffix");
+  renderArray(outputDiv, output, "color-output");
+}
+
+function nextStep(){
+  if(step < arr.length){
+    // Prefix calculation
+    if(step === 0){
+      prefix[0]=1;
+      addStep(`prefix[0]=1 (no elements before index 0)`);
+    } else {
+      prefix[step] = prefix[step-1]*arr[step-1];
+      addStep(`prefix[${step}] = prefix[${step-1}] * arr[${step-1}] = ${prefix[step-1]} * ${arr[step-1]} = ${prefix[step]}`);
+    }
+    renderAll(step);
+    step++;
+    return;
+  }
+
+  if(step >= arr.length && step < 2*arr.length){
+    // Suffix calculation
+    const i = 2*arr.length - step - 1;
+    if(i === arr.length-1){
+      suffix[i]=1;
+      addStep(`suffix[${i}] = 1 (no elements after last index)`);
+    } else {
+      suffix[i] = suffix[i+1]*arr[i+1];
+      addStep(`suffix[${i}] = suffix[${i+1}] * arr[${i+1}] = ${suffix[i+1]} * ${arr[i+1]} = ${suffix[i]}`);
+    }
+    renderAll();
+    step++;
+    return;
+  }
+
+  if(step >= 2*arr.length && step < 3*arr.length){
+    const i = step - 2*arr.length;
+    output[i] = prefix[i]*suffix[i];
+    addStep(`output[${i}] = prefix[${i}] * suffix[${i}] = ${prefix[i]} * ${suffix[i]} = ${output[i]}`);
+    renderAll();
+    step++;
+    return;
+  }
+
+  if(step >= 3*arr.length){
+    addStep(`✅ Done! Final output: [${output.join(", ")}]`);
+    renderAll();
+    step++;
+    return;
+  }
+}
+
+document.getElementById("randomBtn").addEventListener("click", ()=>randomArray());
+document.getElementById("manualBtn").addEventListener("click", manualArray);
+document.getElementById("nextBtn").addEventListener("click", ()=>nextStep());
+document.getElementById("resetBtn").addEventListener("click", resetState);
+
+randomArray();
+</script>
+
+</body>
+</html>
