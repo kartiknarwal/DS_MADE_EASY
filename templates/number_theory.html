@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Number Theory Visualizer ✨</title>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet">
+
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #0b132b, #040509);
+      font-family: "Poppins", sans-serif;
+      color: white;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    .heading {
+      text-align: center;
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin-top: 60px;
+      color: #aaffcc;
+      text-shadow: 0 0 25px rgba(100, 255, 200, 0.6);
+      letter-spacing: 1px;
+      z-index: 2;
+      position: relative;
+    }
+
+    .grid {
+      display: grid;
+      gap: 25px;
+      max-width: 650px;
+      margin: 80px auto;
+      padding: 30px;
+      grid-template-columns: 1fr;
+      position: relative;
+      z-index: 2;
+    }
+
+    .algo {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      border-radius: 18px;
+      padding: 20px 25px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      transform: translateY(40px);
+      opacity: 0;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .algo:hover {
+      transform: scale(1.05) rotateX(5deg);
+      border-color: rgba(0, 255, 140, 0.6);
+    }
+
+    .algo__link {
+      color: #fff;
+      font-size: 1.3rem;
+      font-weight: 600;
+      text-decoration: none;
+      text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+      display: inline-block;
+      transition: color 0.3s ease;
+      z-index: 2;
+      position: relative;
+    }
+
+    .algo__link::after {
+      content: "";
+      position: absolute;
+      bottom: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0%;
+      height: 2px;
+      background: linear-gradient(90deg, #00ffb2, #76ff03);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+    }
+
+    .algo__link:hover {
+      color: #aaffcc;
+    }
+
+    .algo__link:hover::after {
+      width: 80%;
+    }
+
+    /* Hover glow pulse */
+    .glow {
+      position: absolute;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(0,255,160,0.3), transparent 70%);
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+      opacity: 0;
+      z-index: 0;
+    }
+
+    /* Floating Background Orbs */
+    .orb {
+      position: absolute;
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      filter: blur(100px);
+      opacity: 0.45;
+      z-index: 0;
+    }
+
+    .orb.one {
+      background: #00ffaa;
+      top: 5%;
+      left: 10%;
+    }
+
+    .orb.two {
+      background: #00ccff;
+      bottom: 15%;
+      right: 5%;
+    }
+
+    .orb.three {
+      background: #ff00ff;
+      bottom: 5%;
+      left: 15%;
+    }
+
+    /* Back to Home Button */
+    .back-btn {
+      position: fixed;
+      bottom: 35px;
+      left: 35px;
+      background: linear-gradient(135deg, #00ffaa, #00ccff);
+      color: #000;
+      border: none;
+      font-weight: 700;
+      font-size: 1rem;
+      padding: 12px 25px;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(0, 255, 200, 0.6);
+      transition: all 0.3s ease;
+      overflow: hidden;
+      z-index: 99;
+    }
+
+    .back-btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0 0 35px rgba(0, 255, 200, 0.8);
+      color: #001b1b;
+    }
+
+    .back-btn::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: rgba(255, 255, 255, 0.2);
+      transition: all 0.5s ease;
+      border-radius: 50px;
+    }
+
+    .back-btn:hover::after {
+      left: 100%;
+    }
+
+    @media (max-width: 600px) {
+      .heading {
+        font-size: 2rem;
+        margin-top: 40px;
+      }
+      .grid {
+        margin-top: 40px;
+      }
+      .back-btn {
+        left: 20px;
+        bottom: 25px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Floating glowing background orbs -->
+  <div class="orb one"></div>
+  <div class="orb two"></div>
+  <div class="orb three"></div>
+
+  <p class="heading">✨ Number Theory Visualizer ✨</p>
+  <div class="grid"></div>
+
+  <!-- Whoosh sound -->
+  <audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-quick-win-video-game-notification-269.wav" preload="auto"></audio>
+
+  <!-- Back to Home Button -->
+  <button class="back-btn" onclick="window.location.href='../index.html'">⬅ Back to Home</button>
+
+  <script>
+    const algorithms = [
+      { name: 'GCD (Euclidean Algorithm)', link: 'number_theory/gcd.html' },
+      { name: 'Extended Euclidean Algorithm', link: 'number_theory/extended_eucledian.html' },
+      { name: 'Sieve of Eratosthenes', link: 'number_theory/sieve_of_eratosthenes.html' },
+      { name: 'Binary Exponentiation', link: 'number_theory/binary_exponentiation.html' }
+    ];
+
+    const grid = document.querySelector('.grid');
+    const sound = document.getElementById('hoverSound');
+
+    // Inject algorithm cards
+    algorithms.forEach(a => {
+      const card = document.createElement('div');
+      card.classList.add('algo');
+      card.innerHTML = `
+        <span class="glow"></span>
+        <a href="${a.link}" class="algo__link">${a.name}</a>
+      `;
+      grid.appendChild(card);
+    });
+
+    // GSAP Animations
+    gsap.from(".heading", { opacity: 0, y: -30, duration: 1.2, ease: "power3.out" });
+    gsap.to(".algo", { opacity: 1, y: 0, duration: 0.8, stagger: 0.2, ease: "back.out(1.7)" });
+    gsap.from(".back-btn", { opacity: 0, y: 40, duration: 1, delay: 0.8, ease: "power3.out" });
+
+    // Floating orbs animation
+    gsap.to(".orb.one", { x: 80, y: 40, duration: 10, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(".orb.two", { x: -100, y: 60, duration: 12, repeat: -1, yoyo: true, ease: "sine.inOut" });
+    gsap.to(".orb.three", { x: 60, y: -40, duration: 14, repeat: -1, yoyo: true, ease: "sine.inOut" });
+
+    // Hover interactions (Glow + Sound)
+    document.querySelectorAll('.algo').forEach(card => {
+      const glow = card.querySelector('.glow');
+      card.addEventListener('mousemove', e => {
+        const rect = card.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        glow.style.left = `${x}px`;
+        glow.style.top = `${y}px`;
+        gsap.to(glow, { width: 250, height: 250, opacity: 0.6, duration: 0.3, ease: "power2.out" });
+      });
+
+      card.addEventListener('mouseleave', () => {
+        gsap.to(glow, { width: 0, height: 0, opacity: 0, duration: 0.4, ease: "power2.out" });
+      });
+
+      card.addEventListener('mouseenter', () => {
+        sound.currentTime = 0;
+        sound.play().catch(() => {});
+      });
+    });
+  </script>
+</body>
+</html>

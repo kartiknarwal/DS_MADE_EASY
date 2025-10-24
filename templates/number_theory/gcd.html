@@ -1,0 +1,645 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>GCD Visualizer — Line-by-Line Explanations (Lime Glow)</title>
+
+<!-- GSAP -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.1/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.1/ScrollTrigger.min.js"></script>
+
+<style>
+  :root{
+    --bg:#071011;
+    --panel:#0e1615;
+    --muted:#a8b3b3;
+    --lime:#A6FF00;
+    --radius:12px;
+    --glass: rgba(255,255,255,0.02);
+    --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0;background:linear-gradient(180deg,#061011 0%, #071114 100%);color:#eaf6e8;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial}
+  .wrap{max-width:1100px;margin:26px auto;padding:18px;display:flex;flex-direction:column;gap:18px}
+  .hero{display:flex;flex-direction:column;align-items:center;gap:6px;margin-bottom:4px}
+  .title-wrap{position:relative; width:100%; display:flex; justify-content:center}
+  svg#maskTitle{width:100%;max-width:760px;height:70px;display:block}
+  .lead{color:var(--muted);text-align:center;max-width:900px}
+
+  .panel{background:linear-gradient(180deg,var(--panel), rgba(255,255,255,0.01)); padding:14px;border-radius:var(--radius); border:1px solid rgba(166,255,0,0.06); box-shadow:0 12px 40px rgba(0,0,0,0.6)}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+  .left-controls{display:flex;gap:8px;align-items:center}
+  input[type="number"], input[type="text"]{background:var(--glass);border:1px solid rgba(255,255,255,0.03);color:inherit;padding:8px 10px;border-radius:8px;width:110px}
+  button.btn{background:linear-gradient(90deg,var(--lime), #8cff5a); border:none; color:#06210a; padding:9px 12px; font-weight:700; border-radius:10px; cursor:pointer; box-shadow:0 8px 28px rgba(0,0,0,0.45)}
+  button.ghost{background:transparent;color:var(--lime);border:1px solid rgba(166,255,0,0.08);padding:8px 10px;border-radius:8px;cursor:pointer}
+
+  .mode-toggle{display:flex;gap:6px}
+  .mode-toggle button{padding:8px 10px;border-radius:8px}
+
+  .visual{display:flex;flex-direction:column;gap:12px}
+  .cards{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;align-items:center;padding:10px}
+  .card{width:130px;height:110px;border-radius:12px;background:linear-gradient(180deg,#071a13,#053026);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 12px 36px rgba(0,0,0,0.6);position:relative;cursor:grab;user-select:none}
+  .card .label{position:absolute;left:10px;top:8px;color:var(--muted);font-size:12px}
+  .num{font-weight:900;font-size:28px;color:#eaffdf}
+  .sub{font-size:12px;color:var(--muted);margin-top:6px}
+  .dropzone{display:flex;gap:8px;justify-content:center;align-items:center;min-height:36px}
+  .big{width:240px}
+  .pulse{box-shadow:0 8px 32px rgba(166,255,0,0.06)}
+  .hint{color:var(--muted);font-size:13px;text-align:center}
+
+  .hgroup{display:flex;gap:12px;flex-wrap:wrap}
+  .explain{flex:2;min-height:120px;padding:12px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent);color:var(--muted);overflow:auto}
+  .step{background:#071516;padding:10px 12px;border-left:4px solid var(--lime);margin-bottom:10px;border-radius:8px;color:#dfffc9}
+  .stack{width:260px;padding:10px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+  .stack-title{font-weight:700;color:var(--lime);margin-bottom:8px}
+  .stack-list{display:flex;flex-direction:column;gap:8px}
+  .frame{background:#071515;padding:8px;border-radius:8px;color:var(--muted);border:1px solid rgba(255,255,255,0.02)}
+
+  pre.code{background:#061213;color:#dfffc9;padding:12px;border-radius:8px;font-family:var(--mono);font-size:13px;overflow:auto;border:1px solid rgba(166,255,0,0.06)}
+  .code .line{display:block;padding:0 6px;cursor:pointer}
+  .code .hl{background:linear-gradient(90deg, rgba(166,255,0,0.06), transparent);border-radius:6px}
+  .code-explain{background:#051211;padding:10px;border-radius:8px;margin-top:8px;color:var(--muted);font-size:13px;border:1px solid rgba(255,255,255,0.02)}
+
+  .footer{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:13px}
+  @media (max-width:900px){
+    .hgroup{flex-direction:column}
+    .stack{width:100%}
+    .cards{gap:10px}
+  }
+  .rainbow{height:6px;border-radius:8px;margin-top:4px;background:linear-gradient(90deg,#ff4ff8,#00bfff,#a6ff00,#ffc107,#ff4ff8);background-size:200% 100%;box-shadow:0 6px 20px rgba(166,255,0,0.04)}
+</style>
+</head>
+<body>
+  <div class="wrap" id="pageWrap">
+    <div class="hero">
+      <div class="title-wrap">
+        <svg id="maskTitle" viewBox="0 0 900 90" preserveAspectRatio="xMidYMid slice">
+          <defs>
+            <linearGradient id="g1" x1="0" x2="1">
+              <stop offset="0%" stop-color="#A6FF00"/>
+              <stop offset="33%" stop-color="#00BFFF"/>
+              <stop offset="66%" stop-color="#FF4FF8"/>
+              <stop offset="100%" stop-color="#A6FF00"/>
+            </linearGradient>
+            <mask id="m1">
+              <rect width="100%" height="100%" fill="white"/>
+              <text id="maskText" x="50%" y="60%" text-anchor="middle" font-size="48" font-weight="800" font-family="Inter, sans-serif">GCD Visualizer</text>
+            </mask>
+          </defs>
+          <rect width="100%" height="100%" fill="black"></rect>
+          <rect id="rain" width="100%" height="100%" fill="url(#g1)" mask="url(#m1)"></rect>
+        </svg>
+      </div>
+      <p class="lead">Euclidean algorithm visualizer (iterative & recursive). Toggle modes, step through actions, and read clear line-by-line explanations of the C++ code to teach students.</p>
+      <div class="rainbow" id="rainbowStrip" aria-hidden="true"></div>
+    </div>
+
+    <div class="panel controls">
+      <div class="left-controls">
+        <div class="mode-toggle" aria-hidden="false">
+          <button class="ghost" id="modeIter">Iterative</button>
+          <button class="ghost" id="modeRec">Recursive</button>
+        </div>
+
+        <button id="randomBtn" class="btn">🎲 Random</button>
+        <button id="manualBtn" class="ghost">✏️ Manual</button>
+        <button id="nextBtn" class="ghost">▶ Next Step</button>
+        <button id="autoBtn" class="ghost">⏵ Auto</button>
+        <button id="resetBtn" class="ghost">🔄 Reset</button>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px">
+        <label class="hint" style="margin-right:4px">Speed</label>
+        <input id="speed" type="range" min="0.4" max="2.5" step="0.1" value="1" />
+        <div id="speedLabel" class="hint">1.0x</div>
+      </div>
+    </div>
+
+    <div class="panel visual" id="visualPanel">
+      <div class="cards" id="cardRow"></div>
+
+      <div style="display:flex;justify-content:center;gap:10px;flex-wrap:wrap">
+        <div class="hint">a = <strong id="aVal">—</strong></div>
+        <div class="hint">b = <strong id="bVal">—</strong></div>
+        <div class="hint">Last non-zero gcd = <strong id="gcdVal">—</strong></div>
+      </div>
+    </div>
+
+    <div class="hgroup">
+      <div class="panel explain" id="explain">
+        <div class="step" id="introStep"><strong>What's GCD?</strong> The Greatest Common Divisor of two integers is the largest integer that divides both. Euclid's algorithm shows gcd(a,b) = gcd(b, a % b). We'll illustrate and explain each code line as we go.</div>
+      </div>
+
+      <div class="panel stack" id="stackPanel">
+        <div class="stack-title">🧠 Stack / Frames</div>
+        <div class="stack-list" id="stackList"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-start">
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700;color:var(--lime)">C++ — Iterative</div>
+            <div class="hint">Click a line to pin explanation</div>
+          </div>
+          <pre class="code" id="iterCode">
+<span class="line" data-line="1">int gcd_iter(int a, int b) {</span>
+<span class="line" data-line="2">  while (b != 0) {</span>
+<span class="line" data-line="3">    int r = a % b;</span>
+<span class="line" data-line="4">    a = b;</span>
+<span class="line" data-line="5">    b = r;</span>
+<span class="line" data-line="6">  }</span>
+<span class="line" data-line="7">  return a;</span>
+<span class="line" data-line="8">}</span>
+          </pre>
+          <div class="code-explain" id="iterExplain">Click a line or run the visualizer to see an explanation here.</div>
+        </div>
+
+        <div style="flex:1;min-width:260px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700;color:var(--lime)">C++ — Recursive</div>
+            <div class="hint">Click a line to pin explanation</div>
+          </div>
+          <pre class="code" id="recCode">
+<span class="line" data-line="1">int gcd_rec(int a, int b) {</span>
+<span class="line" data-line="2">  if (b == 0) return a;</span>
+<span class="line" data-line="3">  return gcd_rec(b, a % b);</span>
+<span class="line" data-line="4">}</span>
+          </pre>
+          <div class="code-explain" id="recExplain">Click a line or run the visualizer to see an explanation here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel footer">
+      <div class="hint">Tip: Use Manual input for classic examples like <strong>252,105</strong>. Code explanations are beginner-friendly and map to the animation steps.</div>
+      <div class="hint" id="status">Mode: <strong id="modeLabel">Iterative</strong></div>
+    </div>
+  </div>
+
+<script>
+/* GCD Visualizer with line-by-line explanations
+   - Adds explanation text for each code line
+   - Shows explanation below each code block and pins when user clicks a line
+   - Both iterative and recursive modes supported (toggle)
+*/
+
+// GSAP
+gsap.registerPlugin(ScrollTrigger);
+gsap.to('#rain', {xPercent: -50, duration: 6, repeat: -1, ease: 'linear'});
+gsap.to('#rainbowStrip', {backgroundPosition: '200% 0', duration: 8, repeat: -1, ease: 'linear'});
+
+// UI refs
+const modeIter = document.getElementById('modeIter');
+const modeRec = document.getElementById('modeRec');
+const modeLabel = document.getElementById('modeLabel');
+const randomBtn = document.getElementById('randomBtn');
+const manualBtn = document.getElementById('manualBtn');
+const nextBtn = document.getElementById('nextBtn');
+const autoBtn = document.getElementById('autoBtn');
+const resetBtn = document.getElementById('resetBtn');
+const speedRange = document.getElementById('speed');
+const speedLabel = document.getElementById('speedLabel');
+const cardRow = document.getElementById('cardRow');
+const aVal = document.getElementById('aVal');
+const bVal = document.getElementById('bVal');
+const gcdVal = document.getElementById('gcdVal');
+const explain = document.getElementById('explain');
+const stackList = document.getElementById('stackList');
+const iterCode = document.getElementById('iterCode');
+const recCode = document.getElementById('recCode');
+const iterExplain = document.getElementById('iterExplain');
+const recExplain = document.getElementById('recExplain');
+const status = document.getElementById('status');
+
+let mode = 'iter'; // 'iter' or 'rec'
+let speed = 1;
+let autoplay = false;
+let autoplayTimer = null;
+
+// Numbers & state
+let A = 252, B = 105;
+let lastNonZero = null;
+let iterGen = null;
+let recGen = null;
+let recFrames = [];
+let pinnedExplain = {iter: null, rec: null};
+
+// --- Line explanations mapping (beginner friendly) ---
+const iterLineExplanations = {
+  1: "Function header: defines a function gcd_iter that takes two integers a and b.",
+  2: "Loop condition: while b is not zero, we keep reducing the pair (a,b). When b becomes 0 we stop.",
+  3: "Remainder: compute r = a % b — the remainder when a is divided by b. This captures what's left.",
+  4: "Shift a: set a to the previous b. We're preparing for the next step where old b becomes new a.",
+  5: "Shift b: set b to the remainder r. This is the key Euclidean step that reduces the numbers.",
+  6: "Closing bracket for the while loop — loop repeats until b == 0.",
+  7: "Return: when the loop ends, a holds the GCD, so we return it.",
+  8: "Function end."
+};
+
+const recLineExplanations = {
+  1: "Function header: defines the recursive function gcd_rec(a, b).",
+  2: "Base case: if b == 0 then gcd is a, so immediately return a.",
+  3: "Recursive call: otherwise, call gcd_rec with (b, a % b) — this shrinks the problem.",
+  4: "Function end."
+};
+
+// helper: show explanation text under code block (unless pinned)
+function showLineExplanation(block, line){
+  // block: 'iter' or 'rec' ; line: number or null
+  if(block === 'iter'){
+    if(pinnedExplain.iter) return; // pinned by click — don't override
+    if(line == null) iterExplain.textContent = 'Click a line or run the visualizer to see an explanation here.';
+    else iterExplain.textContent = iterLineExplanations[line] || '—';
+  } else {
+    if(pinnedExplain.rec) return;
+    if(line == null) recExplain.textContent = 'Click a line or run the visualizer to see an explanation here.';
+    else recExplain.textContent = recLineExplanations[line] || '—';
+  }
+}
+
+// clicking code lines pins/unpins explanation
+iterCode.querySelectorAll('.line').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const n = Number(el.dataset.line);
+    if(pinnedExplain.iter === n){ pinnedExplain.iter = null; el.classList.remove('pinned'); showLineExplanation('iter', null); }
+    else {
+      // unpin any other line highlight state
+      iterCode.querySelectorAll('.line').forEach(l=>l.classList.remove('pinned'));
+      pinnedExplain.iter = n;
+      el.classList.add('pinned');
+      showLineExplanation('iter', n);
+    }
+  });
+});
+recCode.querySelectorAll('.line').forEach(el=>{
+  el.addEventListener('click', ()=>{
+    const n = Number(el.dataset.line);
+    if(pinnedExplain.rec === n){ pinnedExplain.rec = null; el.classList.remove('pinned'); showLineExplanation('rec', null); }
+    else {
+      recCode.querySelectorAll('.line').forEach(l=>l.classList.remove('pinned'));
+      pinnedExplain.rec = n;
+      el.classList.add('pinned');
+      showLineExplanation('rec', n);
+    }
+  });
+});
+
+// highlight helper that also updates explanation (if not pinned)
+function highlightLine(block, n){
+  // clear both first
+  iterCode.querySelectorAll('.line').forEach(l=>l.classList.remove('hl'));
+  recCode.querySelectorAll('.line').forEach(l=>l.classList.remove('hl'));
+  if(block === 'iter' && n != null){
+    const el = iterCode.querySelector(`.line[data-line="${n}"]`);
+    if(el) el.classList.add('hl');
+    showLineExplanation('iter', n);
+  } else if(block === 'rec' && n != null){
+    const el = recCode.querySelector(`.line[data-line="${n}"]`);
+    if(el) el.classList.add('hl');
+    showLineExplanation('rec', n);
+  } else {
+    // clear explanation if not pinned
+    if(block === 'iter' && !pinnedExplain.iter) showLineExplanation('iter', null);
+    if(block === 'rec' && !pinnedExplain.rec) showLineExplanation('rec', null);
+  }
+}
+
+// UI wiring & basic animations
+gsap.to('#rain', {xPercent: -50, duration: 6, repeat: -1, ease: 'linear'});
+gsap.to('#rainbowStrip', {backgroundPosition: '200% 0', duration: 8, repeat: -1, ease: 'linear'});
+
+speedRange.addEventListener('input', (e)=>{ speed = Number(e.target.value); speedLabel.textContent = speed.toFixed(1) + 'x'; if(autoplay) restartAuto(); });
+
+modeIter.addEventListener('click', ()=>setMode('iter'));
+modeRec.addEventListener('click', ()=>setMode('rec'));
+
+function setMode(m){
+  mode = m;
+  modeLabel.textContent = m === 'iter' ? 'Iterative' : 'Recursive';
+  modeIter.classList.toggle('ghost', m !== 'iter');
+  modeRec.classList.toggle('ghost', m !== 'rec');
+  addStep(`Switched to <strong>${modeLabel.textContent}</strong> mode.`);
+  reset(true);
+  highlightLine(mode==='iter'?'iter':'rec', null);
+}
+
+// random / manual / reset / next / auto
+randomBtn.addEventListener('click', ()=>{
+  A = Math.floor(Math.random()*200)+10;
+  B = Math.floor(Math.random()*200)+1;
+  if(B > A){ const t=A; A=B; B=t; }
+  addStep(`Random pair: a=${A}, b=${B}`);
+  reset(true);
+});
+manualBtn.addEventListener('click', ()=>{
+  const s = prompt('Enter two positive integers separated by comma (e.g. 252,105):');
+  if(!s) return;
+  const parts = s.split(',').map(x=>Number(x.trim())).filter(x=>Number.isFinite(x));
+  if(parts.length < 2){ alert('Please enter two numbers.'); return; }
+  A = Math.abs(Math.floor(parts[0])); B = Math.abs(Math.floor(parts[1]));
+  addStep(`Manual input: a=${A}, b=${B}`);
+  reset(true);
+});
+nextBtn.addEventListener('click', async ()=>{ stopAuto(); await stepOnce(); });
+autoBtn.addEventListener('click', ()=>{ autoplay = !autoplay; autoBtn.textContent = autoplay ? '⏸ Stop' : '⏵ Auto'; if(autoplay) startAuto(); else stopAuto(); });
+resetBtn.addEventListener('click', ()=>{ stopAuto(); reset(true); pinnedExplain = {iter:null,rec:null}; iterCode.querySelectorAll('.line').forEach(l=>l.classList.remove('pinned')); recCode.querySelectorAll('.line').forEach(l=>l.classList.remove('pinned')); });
+
+// autoplay helpers
+function startAuto(){ if(autoplayTimer) return; autoplayTimer = setInterval(()=>{ stepOnce(); }, Math.max(180, 700 / speed)); }
+function stopAuto(){ if(autoplayTimer){ clearInterval(autoplayTimer); autoplayTimer = null; } autoplay = false; autoBtn.textContent = '⏵ Auto'; }
+function restartAuto(){ stopAuto(); startAuto(); }
+
+// explanation area helper
+let stepCounter = 1;
+function addStep(html){
+  const node = document.createElement('div');
+  node.className = 'step';
+  node.innerHTML = `<div style="font-weight:800">Step ${stepCounter++}:</div> ${html}`;
+  explain.appendChild(node);
+  gsap.from(node, {y:10, opacity:0, duration:0.35});
+  node.scrollIntoView({behavior:'smooth', block:'end'});
+}
+
+// build cards
+function buildCards(){
+  cardRow.innerHTML = '';
+  createCard('a', A);
+  createCard('b', B);
+  createCard('last', lastNonZero ?? '—');
+}
+function createCard(name, val){
+  const el = document.createElement('div');
+  el.className = 'card' + (name==='last' ? ' big' : '');
+  el.dataset.name = name;
+  el.innerHTML = `<div class="label">${name}</div><div class="num">${val}</div><div class="sub">${name==='last' ? 'last non-zero' : (name==='a'?'value a':'value b')}</div>`;
+  cardRow.appendChild(el);
+
+  // pointer drag
+  el.addEventListener('pointerdown', (e)=>{
+    el.setPointerCapture(e.pointerId);
+    el.dataset.dragging = '1';
+    el.initialX = e.clientX; el.initialY = e.clientY;
+  });
+  el.addEventListener('pointermove', (e)=>{
+    if(el.dataset.dragging !== '1') return;
+    const dx = e.clientX - el.initialX;
+    const dy = e.clientY - el.initialY;
+    el.style.transform = `translate(${dx}px, ${dy}px)`;
+  });
+  el.addEventListener('pointerup', (e)=>{
+    el.releasePointerCapture(e.pointerId);
+    el.dataset.dragging = '0';
+    el.style.transform = '';
+  });
+}
+
+// stack render
+function renderStack(){
+  stackList.innerHTML = '';
+  if(mode === 'rec'){
+    for(let i = recFrames.length -1; i >=0; i--){
+      const f = recFrames[i];
+      const node = document.createElement('div');
+      node.className = 'frame';
+      node.innerHTML = `<div><strong>gcd(${f.a}, ${f.b})</strong></div><div style="font-size:13px;color:var(--muted)">${f.stage||''}</div>`;
+      stackList.appendChild(node);
+    }
+  } else {
+    const node = document.createElement('div');
+    node.className = 'frame';
+    node.innerHTML = `<div><strong>iterative</strong></div><div style="font-size:13px;color:var(--muted)">a = ${A}, b = ${B}</div>`;
+    stackList.appendChild(node);
+  }
+}
+
+// GENERATORS ---------------------------------------------------
+function* gcdIterGen(a,b){
+  let A = a, B = b;
+  yield {type:'init', a:A, b:B};
+  while(B !== 0){
+    if(A < B){
+      yield {type:'swapvals', a:A, b:B};
+      const t = A; A = B; B = t;
+    }
+    const q = Math.floor(A / B);
+    const r = A % B;
+    yield {type:'divide', a:A, b:B, q, r};
+    A = B;
+    B = r;
+    yield {type:'assign', a:A, b:B};
+  }
+  yield {type:'done', gcd:A};
+}
+
+function* gcdRecGen(a,b){
+  const stack = [];
+  stack.push({a,b,stage:'call', returned:null});
+  yield {type:'init', stack:[...stack]};
+  while(stack.length){
+    const top = stack[stack.length-1];
+    if(top.stage === 'call'){
+      yield {type:'rec-call', a:top.a, b:top.b};
+      if(top.b === 0){
+        top.returned = top.a;
+        top.stage = 'return';
+        yield {type:'rec-base', a:top.a};
+        continue;
+      } else {
+        const r = top.a % top.b;
+        yield {type:'rec-compute', a:top.a, b:top.b, r};
+        top.stage = 'waiting';
+        stack.push({a: top.b, b: r, stage:'call', returned:null});
+        yield {type:'rec-push', stack:[...stack]};
+        continue;
+      }
+    } else if(top.stage === 'waiting'){
+      const child = stack.pop();
+      const parent = stack[stack.length-1];
+      parent.returned = child.returned;
+      parent.stage = 'return';
+      yield {type:'rec-child-return', parentA:parent.a, parentB:parent.b, ret:child.returned};
+      continue;
+    } else if(top.stage === 'return'){
+      const popped = stack.pop();
+      yield {type:'rec-return', val:popped.returned, popped:popped};
+      continue;
+    } else {
+      break;
+    }
+  }
+  yield {type:'done', gcd:null};
+}
+
+// STEP runner ---------------------------------------------------
+async function stepOnce(){
+  if(mode === 'iter'){
+    if(!iterGen) iterGen = gcdIterGen(A,B);
+    const next = iterGen.next();
+    if(next.done){ addStep('Iterative: finished'); highlightLine('iter', null); return; }
+    const s = next.value;
+    await handleIterStep(s);
+  } else {
+    if(!recGen) recGen = gcdRecGen(A,B);
+    const next = recGen.next();
+    if(next.done){ addStep('Recursive: finished'); highlightLine('rec', null); return; }
+    const s = next.value;
+    await handleRecStep(s);
+  }
+}
+
+// Iter handlers
+async function handleIterStep(step){
+  switch(step.type){
+    case 'init':
+      addStep(`Iterative start: a=${step.a}, b=${step.b}`);
+      A = step.a; B = step.b;
+      aVal.textContent = A; bVal.textContent = B; gcdVal.textContent = '—';
+      highlightLine('iter',2); buildCards(); renderStack();
+      break;
+    case 'swapvals':
+      addStep(`Ensure a ≥ b: swapping a and b.`);
+      highlightLine('iter',2);
+      await animateCardsSwap('a','b');
+      // swap numeric values in UI
+      const tmp = A; A = B; B = tmp;
+      aVal.textContent = A; bVal.textContent = B;
+      renderStack();
+      break;
+    case 'divide':
+      addStep(`Compute q = ${step.q}, r = ${step.r} for ${step.a} ÷ ${step.b}.`);
+      highlightLine('iter',3);
+      await animateModulus(step.a, step.b, step.r);
+      break;
+    case 'assign':
+      addStep(`Assign a = ${step.a}, b = ${step.b}. Move to next iteration.`);
+      highlightLine('iter',4);
+      A = step.a; B = step.b;
+      aVal.textContent = A; bVal.textContent = B;
+      buildCards(); renderStack();
+      break;
+    case 'done':
+      addStep(`Done: GCD = ${step.gcd}`);
+      highlightLine('iter',7);
+      lastNonZero = step.gcd; gcdVal.textContent = lastNonZero; buildCards(); renderStack();
+      break;
+  }
+}
+
+// Rec handlers
+async function handleRecStep(step){
+  switch(step.type){
+    case 'init':
+      addStep(`Recursive simulation start: gcd(${A}, ${B})`);
+      recFrames = step.stack.map(s=>({a:s.a,b:s.b,stage:s.stage}));
+      renderStack();
+      highlightLine('rec',1);
+      break;
+    case 'rec-call':
+      addStep(`Call gcd(${step.a}, ${step.b})`);
+      recFrames.push({a:step.a,b:step.b,stage:'call'});
+      renderStack();
+      highlightLine('rec',1);
+      break;
+    case 'rec-base':
+      addStep(`Base case: b == 0, return a = ${step.a}`);
+      if(recFrames.length) recFrames[recFrames.length-1].stage = 'base-return';
+      renderStack();
+      highlightLine('rec',2);
+      break;
+    case 'rec-compute':
+      addStep(`Compute r = ${step.a} % ${step.b} = ${step.r}, then recurse into gcd(${step.b}, ${step.r}).`);
+      if(recFrames.length) recFrames[recFrames.length-1].stage = `compute r=${step.r}`;
+      renderStack();
+      break;
+    case 'rec-push':
+      addStep(`Push new call gcd(${step.stack[step.stack.length-1].a}, ${step.stack[step.stack.length-1].b}).`);
+      recFrames = step.stack.map(s=>({a:s.a,b:s.b,stage:s.stage}));
+      renderStack();
+      gsap.from('.frame',{y:8,opacity:0,duration:0.35,stagger:0.04});
+      break;
+    case 'rec-child-return':
+      addStep(`Child returned ${step.ret}. Parent gcd(${step.parentA}, ${step.parentB}) will return this value.`);
+      if(recFrames.length) recFrames[recFrames.length-1].stage = `returned ${step.ret}`;
+      renderStack();
+      highlightLine('rec',3);
+      break;
+    case 'rec-return':
+      addStep(`Returning ${step.val} from gcd(${step.popped.a}, ${step.popped.b}).`);
+      recFrames.pop();
+      renderStack();
+      break;
+    case 'done':
+      addStep('Recursive simulation complete.');
+      highlightLine('rec', null);
+      break;
+  }
+}
+
+// Animations: swap & modulus
+function animateCardsSwap(name1, name2){
+  const el1 = cardRow.querySelector(`.card[data-name="${name1}"]`);
+  const el2 = cardRow.querySelector(`.card[data-name="${name2}"]`);
+  if(!el1 || !el2) return Promise.resolve();
+  const r1 = el1.getBoundingClientRect(), r2 = el2.getBoundingClientRect();
+  const c1 = el1.cloneNode(true), c2 = el2.cloneNode(true);
+  document.body.appendChild(c1); document.body.appendChild(c2);
+  Object.assign(c1.style, {position:'absolute', left:r1.left+'px', top:r1.top+'px', margin:0, zIndex:9999});
+  Object.assign(c2.style, {position:'absolute', left:r2.left+'px', top:r2.top+'px', margin:0, zIndex:9999});
+  gsap.to([el1,el2],{opacity:0.3,duration:0.12});
+  return new Promise(resolve=>{
+    gsap.to(c1, {x: r2.left - r1.left, duration:0.45, ease:'power2.inOut'});
+    gsap.to(c2, {x: r1.left - r2.left, duration:0.45, ease:'power2.inOut', onComplete: ()=>{
+      const n1 = el1.querySelector('.num').textContent, n2 = el2.querySelector('.num').textContent;
+      el1.querySelector('.num').textContent = n2; el2.querySelector('.num').textContent = n1;
+      c1.remove(); c2.remove();
+      gsap.to([el1,el2],{opacity:1,duration:0.12});
+      resolve();
+    }});
+  });
+}
+async function animateModulus(a,b,r){
+  const elA = cardRow.querySelector(`.card[data-name="a"]`);
+  const elB = cardRow.querySelector(`.card[data-name="b"]`);
+  if(!elA || !elB) { await wait(300); return; }
+  elB.classList.add('pulse');
+  await gsap.to(elA, {scale:1.06, duration:0.18, yoyo:true, repeat:1});
+  await wait(200);
+  elA.querySelector('.num').textContent = r;
+  await gsap.fromTo(elA, {background:'#05221a'},{background:'#063727',duration:0.35});
+  elB.classList.remove('pulse');
+  aVal.textContent = Math.max(b,1);
+  bVal.textContent = r;
+}
+function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+// reset and initialize
+function reset(rebuildCards=true){
+  stopAuto();
+  lastNonZero = null;
+  gcdVal.textContent = '—';
+  aVal.textContent = A; bVal.textContent = B;
+  stepCounter = 1;
+  explain.innerHTML = `<div class="step"><strong>What's GCD?</strong> We'll show steps and highlight code with clear explanations for each line.</div>`;
+  recFrames = [];
+  if(rebuildCards) buildCards();
+  iterGen = gcdIterGen(A,B);
+  recGen = gcdRecGen(A,B);
+  renderStack();
+  highlightLine(mode==='iter'?'iter':'rec', null);
+}
+reset(true);
+
+// keyboard Enter -> next
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') nextBtn.click(); });
+
+// pinning behavior: if user pinned explanation, step runner won't overwrite it
+// (already handled in showLineExplanation by checking pinnedExplain)
+
+// make code line highlights respond to generator explicit calls by calling highlightLine(block,line) in handlers
+
+</script>
+</body>
+</html>

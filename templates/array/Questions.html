@@ -136,30 +136,76 @@
 <div class="container" id="questions-container">
   <!-- Question 1 -->
   <div class="card" data-title="Two Sum" data-pattern="HashMap">
-    <h2>
-      1. Two Sum
-      <span class="pattern-tag">HashMap</span>
-    </h2>
-    <button class="collapsible">Show Explanation</button>
-    <div class="content">
-      <p>🧠 <strong>Real-Life Analogy:</strong> Imagine you’re at a candy shop 🍬. You want two candies whose prices sum exactly to your pocket money.</p>
-      <p>✅ <strong>Requirements:</strong></p>
-      <ul>
-        <li>Return indices of the two numbers.</li>
-        <li>Assume exactly one solution exists.</li>
-      </ul>
-      <p>🧠 <strong>Key Takeaways:</strong></p>
-      <ul>
-        <li>Use a HashMap to store previously seen numbers.</li>
-        <li>Check if complement (target - current number) exists in map.</li>
-        <li>Efficient: Only one pass needed (O(n) time).</li>
-      </ul>
-      <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(n)</p>
-      <div class="leetcode-link">
-        <a href="https://leetcode.com/problems/two-sum/" target="_blank">LeetCode</a>
-      </div>
+  <h2>
+    1. Two Sum
+    <span class="pattern-tag">HashMap</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Imagine you’re at a candy shop 🍬. You want two candies whose prices sum exactly to your pocket money.</p>
+    
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Return indices of the two numbers.</li>
+      <li>Assume exactly one solution exists.</li>
+    </ul>
+
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use a HashMap to store previously seen numbers.</li>
+      <li>Check if complement (target - current number) exists in map.</li>
+      <li>Efficient: Only one pass needed (O(n) time).</li>
+    </ul>
+
+    <p>💡 <strong>Memory Tip:</strong>  
+    Always think in terms of **one pass + extra map**. Store only what you need. Works even with duplicates!</p>
+
+    <p>🛠️ <strong>Approaches:</strong></p>
+    <ul>
+      <li><strong>Brute Force:</strong> Check all pairs with two nested loops.  
+          <em>Time:</em> O(n²), <em>Space:</em> O(1)</li>
+      <li><strong>Optimal:</strong> Use HashMap to check complement while traversing.  
+          <em>Time:</em> O(n), <em>Space:</em> O(n)</li>
+      <li><strong>Most Optimal:</strong> Same as optimal but track indices smartly, handle duplicates efficiently.  
+          <em>Time:</em> O(n), <em>Space:</em> O(n)</li>
+    </ul>
+
+    <p>💭 <strong>Detailed Dry Run Example:</strong></p>
+    <pre>
+Input: nums = [2, 7, 11, 15], target = 9
+
+Step-by-Step Execution:
+
+Step 0: Initialize empty HashMap → {}
+
+Step 1: i = 0, nums[i] = 2
+        Complement = target - nums[i] = 9 - 2 = 7
+        Check HashMap: 7 not found
+        Action: Add 2 to HashMap → {2: 0}
+
+Step 2: i = 1, nums[i] = 7
+        Complement = 9 - 7 = 2
+        Check HashMap: 2 found at index 0 ✅
+        Action: Solution found! Return indices [0, 1]
+
+Step 3: i = 2, nums[i] = 11
+        Not reached because solution already found.
+
+Step 4: i = 3, nums[i] = 15
+        Not reached because solution already found.
+
+Output: [0, 1]
+Explanation: The two numbers 2 and 7 sum to 9. HashMap efficiently tracked previous numbers.
+    </pre>
+
+    <p>⏱️ <strong>Overall Complexity:</strong> O(n) time, O(n) space</p>
+
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/two-sum/" target="_blank">LeetCode</a>
     </div>
   </div>
+</div>
+
 
   <!-- Question 2 -->
   <div class="card" data-title="Best Time to Buy and Sell Stock" data-pattern="Greedy">
@@ -211,6 +257,182 @@
       </div>
     </div>
   </div>
+
+  <div class="card" data-title="Move Zeroes" data-pattern="Two Pointers">
+  <h2>
+    4. Move Zeroes
+    <span class="pattern-tag">Two Pointers</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Imagine cleaning a desk 🧹. Push all empty bottles (zeros) to the end, keep the books (non-zero) in order.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Do it in-place.</li>
+      <li>Minimize operations.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use two pointers: one for traversal, one for placing non-zero elements.</li>
+      <li>Swap zeros with non-zero elements efficiently.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/move-zeroes/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="Product of Array Except Self" data-pattern="Prefix/Suffix">
+  <h2>
+    5. Product of Array Except Self
+    <span class="pattern-tag">Prefix/Suffix</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Imagine a relay race 🏃‍♂️. Each runner contributes, but you calculate the product without including yourself.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Cannot use division.</li>
+      <li>O(n) time solution.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use prefix and suffix product arrays.</li>
+      <li>Combine left and right products for each index.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(n)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/product-of-array-except-self/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="Maximum Product Subarray" data-pattern="Dynamic Programming">
+  <h2>
+    6. Maximum Product Subarray
+    <span class="pattern-tag">DP</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Tracking your daily productivity 📈, some days multiply your results (positive), some reduce (negative). Find the streak giving max product.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Find contiguous subarray with maximum product.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Maintain max and min product ending at current index.</li>
+      <li>Swap max and min if current element is negative.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/maximum-product-subarray/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="3Sum" data-pattern="Two Pointers">
+  <h2>
+    7. 3Sum
+    <span class="pattern-tag">Two Pointers</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Finding three friends 🤝 whose ages sum to a specific number for a group activity.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Return all unique triplets that sum to zero.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Sort the array.</li>
+      <li>Fix one element, use two pointers for remaining two.</li>
+      <li>Avoid duplicates by skipping same numbers.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n²), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/3sum/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="Container With Most Water" data-pattern="Two Pointers">
+  <h2>
+    8. Container With Most Water
+    <span class="pattern-tag">Two Pointers</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> You’re building a water tank 💧 with vertical walls; choose two walls that trap the most water.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Return maximum water area.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use two pointers at both ends.</li>
+      <li>Move pointer with smaller height towards center.</li>
+      <li>Keep track of max area.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/container-with-most-water/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="Trapping Rain Water" data-pattern="Two Pointers">
+  <h2>
+    9. Trapping Rain Water
+    <span class="pattern-tag">Two Pointers</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> Imagine blocks and valleys 🏔️; after rain, water collects between tall blocks.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Return how much water can be trapped.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use two pointers from left and right.</li>
+      <li>Track maxLeft and maxRight heights.</li>
+      <li>Water trapped = min(maxLeft, maxRight) - current height.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(n), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/trapping-rain-water/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+<div class="card" data-title="Find Minimum in Rotated Sorted Array" data-pattern="Binary Search">
+  <h2>
+    10. Find Minimum in Rotated Sorted Array
+    <span class="pattern-tag">Binary Search</span>
+  </h2>
+  <button class="collapsible">Show Explanation</button>
+  <div class="content">
+    <p>🧠 <strong>Real-Life Analogy:</strong> A circular clock 🕒 that’s been shifted; find the earliest hour.</p>
+    <p>✅ <strong>Requirements:</strong></p>
+    <ul>
+      <li>Array is rotated and sorted.</li>
+      <li>Find minimum element.</li>
+    </ul>
+    <p>🧠 <strong>Key Takeaways:</strong></p>
+    <ul>
+      <li>Use modified binary search.</li>
+      <li>Check mid vs right to decide search direction.</li>
+    </ul>
+    <p>⏱️ <strong>Complexity:</strong> Time: O(log n), Space: O(1)</p>
+    <div class="leetcode-link">
+      <a href="https://leetcode.com/problems/find-minimum-in-rotated-sorted-array/" target="_blank">LeetCode</a>
+    </div>
+  </div>
+</div>
+
+
 
 </div>
 
