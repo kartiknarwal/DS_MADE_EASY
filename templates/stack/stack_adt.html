@@ -1,0 +1,596 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Array Algorithms — Premium Cards (Animated)</title>
+
+<!-- Inter font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+
+<!-- GSAP Core + ScrollTrigger -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.1/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.1/ScrollTrigger.min.js"></script>
+
+<style>
+  :root{
+    --bg-900: #0b0c0f;
+    --panel: rgba(255,255,255,0.04);
+    --accent: #00bcd4;
+    --glass-border: rgba(0,188,212,0.18);
+    --muted: #bdbdbd;
+    --card-glow: rgba(0,188,212,0.12);
+    --radius: 18px;
+    --glass-blur: 8px;
+    --max-width: 1150px;
+  }
+
+  /* base */
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family:"Inter",system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;
+    background:
+      radial-gradient(1200px 600px at 10% 10%, rgba(0,188,212,0.06), transparent 8%),
+      radial-gradient(900px 400px at 90% 90%, rgba(255,0,128,0.025), transparent 6%),
+      linear-gradient(180deg,#050507 0%, var(--bg-900) 30%);
+    color: #f7fafc;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding: clamp(18px, 3vw, 40px);
+    scroll-behavior: smooth;
+    overflow-y:auto;
+  }
+
+  /* container */
+  .wrap{
+    max-width: var(--max-width);
+    margin: 0 auto;
+    position:relative;
+  }
+
+  /* header / hero */
+  .hero{
+    display:flex;
+    gap: 24px;
+    align-items:center;
+    justify-content:space-between;
+    padding: clamp(18px, 4vw, 36px);
+    margin-bottom: clamp(18px, 4vw, 48px);
+  }
+
+  .hero-left{
+    flex:1 1 620px;
+    min-width:0;
+  }
+
+  .kicker{
+    display:inline-block;
+    font-weight:700;
+    color:var(--muted);
+    background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0.02));
+    padding:6px 12px;
+    border-radius: 999px;
+    font-size: clamp(12px, 1.2vw, 13px);
+    letter-spacing:0.6px;
+    border:1px solid rgba(255,255,255,0.03);
+  }
+
+  /* masked rainbow heading; each letter is a span that uses gradient background-clip */
+  .heading{
+    margin-top:16px;
+    font-weight:800;
+    font-size: clamp(32px, 6.6vw, 56px);
+    line-height:1.02;
+    letter-spacing:-1px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+
+  .heading .word{
+    display:inline-block;
+    white-space:nowrap;
+  }
+
+  .heading .char{
+    display:inline-block;
+    padding:0 1px;
+    background: linear-gradient(90deg, #ff0066, #ff8a00, #ffd400, #00e676, #00bcd4, #3b82f6, #7c3aed);
+    background-size: 400% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    transform-origin: 50% 50%;
+    will-change: transform, filter;
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.55));
+  }
+
+  .sub{
+    margin-top:12px;
+    color:var(--muted);
+    font-size: clamp(13px, 1.3vw, 15px);
+    max-width:72%;
+  }
+
+  /* search + controls */
+  .controls{
+    margin-top:18px;
+    display:flex;
+    gap:12px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+
+  .search{
+    flex: 1 1 420px;
+    display:flex;
+    gap:8px;
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border-radius: 999px;
+    padding:8px;
+    border:1px solid rgba(255,255,255,0.03);
+    align-items:center;
+    min-width:0;
+  }
+
+  .search input{
+    background:transparent;
+    border:0;
+    outline:0;
+    color: #fff;
+    font-size:14px;
+    padding:8px 10px;
+    width:100%;
+  }
+
+  .btn{
+    background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));
+    border: 1px solid var(--glass-border);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-weight:600;
+    cursor:pointer;
+  }
+
+  .btn.ghost{
+    background:transparent;
+    border:1px dashed rgba(255,255,255,0.04);
+  }
+
+  /* cards grid */
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: clamp(14px, 2.4vw, 28px);
+    margin-top: clamp(12px, 3vw, 28px);
+  }
+
+  .card{
+    position:relative;
+    padding: 22px;
+    border-radius: var(--radius);
+    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    overflow: hidden;
+    min-height:110px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition: transform .35s cubic-bezier(.2,.9,.25,1), box-shadow .35s, border .35s;
+    cursor: pointer;
+  }
+
+  /* card highlight glow bar */
+  .card::before{
+    content:"";
+    position:absolute;
+    left:-40%;
+    top:-40%;
+    width:180%;
+    height:180%;
+    background: radial-gradient(circle at 20% 20%, rgba(0,188,212,0.07), transparent 10%),
+                radial-gradient(circle at 80% 80%, rgba(124,58,237,0.03), transparent 8%);
+    transform: rotate(12deg);
+    pointer-events:none;
+  }
+
+  .card:hover{
+    transform: translateY(-12px) rotateX(2deg) rotateY(2deg) scale(1.02);
+    box-shadow: 0 24px 60px rgba(0,0,0,0.55), 0 10px 32px var(--card-glow);
+    border: 1px solid rgba(255,255,255,0.09);
+  }
+
+  .icon{
+    width:56px;
+    height:56px;
+    border-radius:12px;
+    display:grid;
+    place-items:center;
+    font-size:20px;
+    font-weight:700;
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    border:1px solid rgba(255,255,255,0.03);
+    color:#fff;
+  }
+
+  .title{
+    font-weight:700;
+    color:var(--accent);
+    font-size:16px;
+  }
+
+  .desc{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+    margin-top:4px;
+    flex:1;
+  }
+
+  .card-footer{
+    display:flex;
+    justify-content:space-between;
+    gap:8px;
+    align-items:center;
+    margin-top:8px;
+  }
+
+  .link{
+    text-decoration:none;
+    color: #cdeffd;
+    font-weight:600;
+    font-size:13px;
+    display:inline-flex;
+    gap:8px;
+    align-items:center;
+  }
+
+  /* floating decorative SVG shapes */
+  .decor{
+    pointer-events:none;
+    position:fixed;
+    z-index:0;
+    inset:0;
+    mix-blend-mode: screen;
+    opacity:0.06;
+  }
+
+  /* footer */
+  .footer{
+    margin-top: clamp(28px, 6vw, 60px);
+    color:var(--muted);
+    text-align:center;
+    font-size:13px;
+    opacity:0.9;
+  }
+
+  /* responsive layout */
+  @media (max-width:900px){
+    .hero{flex-direction:column;align-items:flex-start}
+    .sub{max-width:100%}
+  }
+
+  /* reduced motion preference */
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important; animation:none !important}
+  }
+
+  /* small helper */
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- decorative svg shapes for subtle parallax -->
+<svg class="decor" width="100%" height="100%" viewBox="0 0 1200 800" preserveAspectRatio="none" aria-hidden="true">
+  <g opacity="0.6">
+    <circle cx="100" cy="150" r="220" fill="#00bcd4"></circle>
+    <circle cx="1100" cy="650" r="180" fill="#8b5cf6"></circle>
+    <circle cx="900" cy="80" r="120" fill="#ff0066"></circle>
+  </g>
+</svg>
+
+<main class="wrap" role="main">
+  <header class="hero" aria-labelledby="hero-title">
+    <div class="hero-left">
+      <div class="kicker">DSALGO • Interactive Learning</div>
+
+      <!-- masked letters heading -->
+      <h1 id="hero-title" class="heading" aria-label="Array Algorithms — Premium Cards">
+        <!-- letters are injected by JS to add .char spans -->
+        <span class="word">Array</span>
+        <span class="word">Algorithms</span>
+      </h1>
+
+      <p class="sub">A beautifully designed, animated quick-reference for array techniques — patterns, problems, and short cheat-sheets that stick. Hover, scroll, and explore. Built for teaching and memory retention.</p>
+
+      <div class="controls" role="region" aria-label="controls">
+        <div class="search" role="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M21 21l-4.35-4.35" stroke="#cbd5e1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><circle cx="11" cy="11" r="5" stroke="#cbd5e1" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input id="q" type="search" placeholder="Search algorithm name or concept (e.g., Kadane, Two Pointer)" aria-label="Search algorithms">
+        </div>
+        <button class="btn ghost" id="shuffleBtn" title="Shuffle order">Shuffle</button>
+        <button class="btn" id="cheatsBtn" title="Open mini cheat sheet">Cheat Sheet</button>
+      </div>
+    </div>
+
+    <!-- right side: big visual card -->
+    <aside class="hero-right" aria-hidden="true" style="width:320px;flex:0 0 320px;">
+      <div style="padding:22px;border-radius:20px;border:1px solid rgba(255,255,255,0.03);background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(6px);">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:64px;height:64px;border-radius:12px;display:grid;place-items:center;font-size:26px;background:linear-gradient(135deg,#00bcd4,#00e5ff);color:#071217">⚡</div>
+          <div>
+            <div style="font-weight:800;color:#fff;font-size:16px">Fast visual learning</div>
+            <div style="color:var(--muted);font-size:13px;margin-top:2px">Short analogies, pattern-first approach, memorable examples.</div>
+          </div>
+        </div>
+
+        <div style="margin-top:16px">
+          <div style="height:8px;background:rgba(255,255,255,0.03);border-radius:999px;overflow:hidden;">
+            <div id="progressBar" style="width:38%;height:100%;background:linear-gradient(90deg,#ff8a00,#ffd400,#00e676);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:8px;color:var(--muted);font-size:12px">
+            <div>Beginner → Expert</div>
+            <div>38% complete</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+  </header>
+
+  <!-- grid -->
+  <section aria-labelledby="list-title">
+    <h2 id="list-title" class="hidden">Algorithms list</h2>
+
+    <div id="cards" class="grid" role="list"></div>
+  </section>
+
+  <div class="footer">💻 DSALGO Visualizer • Premium Dark Theme — Built for teaching • Tip: press <kbd>/</kbd> to focus search</div>
+</main>
+
+<script>
+/* -----------------------------
+   Data (kept from your original list)
+   ----------------------------- */
+const algo = [
+  { name: 'Array Patterns & Tricks', link: `array/miniCheatSheet.html`, desc: 'Compact cheat sheet for array operations', icon: '📚' },
+  { name: 'Array Questions', link: `array/Questions.html`, desc: 'Common interview & practice problems (LeetCode / HackerRank / GfG). Approach, technique, and an unforgettable real-life analogy for each.', icon: '❓' },
+  { name: 'Array ADT', link: `array/array_adt.html`, desc: 'Abstract data structure to handle arrays easily', icon: '🔢' },
+  { name: 'Linear Search', link: `array/linear.html`, desc: 'Find element sequentially', icon: '🔍' },
+  { name: "Kadane's Algorithm", link: `array/kadane.html`, desc: 'Maximum subarray sum efficiently', icon: '📈' },
+  { name: 'Prefix Sum', link: `array/prefix_sum.html`, desc: 'Precompute sums for subarrays', icon: '➕' },
+  { name: 'Sliding Window', link: `array/sliding_windows.html`, desc: 'Optimize range calculations', icon: '📐' },
+  { name: "Array Partitioning", link: "array/partition.html", desc: 'Divide arrays into partitions', icon: '🧩' },
+  { name: "Rain Water Trapping", link: "array/rain_water.html", desc: 'Compute trapped water efficiently', icon: '💧' },
+  { name: "Two Pointer Technique", link: "array/two_pointers.html", desc: 'Optimize array traversal with two pointers', icon: '🔄' },
+  { name: "Dutch National Flag", link: "array/dutch_flag.html", desc: 'Sort an array with three distinct values', icon: '🇳🇱' },
+  { name: "Product of Array Except Self", link: "array/ProductofArrayExceptSelf.html", desc: 'Compute product of array except self efficiently', icon:'📦' }
+];
+
+/* -----------------------------
+   Utility: render cards
+   ----------------------------- */
+const cardsEl = document.getElementById('cards');
+
+function renderList(list){
+  cardsEl.innerHTML = '';
+  list.forEach((item, idx) => {
+    const a = document.createElement('a');
+    a.className = 'card';
+    a.href = item.link;
+    a.setAttribute('role', 'listitem');
+    a.setAttribute('aria-label', item.name + ' — ' + item.desc);
+    a.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="icon" aria-hidden="true">${item.icon}</div>
+        <div style="min-width:0">
+          <div class="title">${item.name}</div>
+          <div class="desc">${item.desc}</div>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div style="color:var(--muted);font-size:13px">Topic • Arrays</div>
+        <div><span class="link">Open ➜</span></div>
+      </div>
+    `;
+    // subtle stagger delay on data attribute for animation
+    a.dataset.index = idx;
+    cardsEl.appendChild(a);
+  });
+  attachCardInteractions();
+}
+renderList(algo);
+
+/* -----------------------------
+   Interactive controls
+   ----------------------------- */
+const q = document.getElementById('q');
+q.addEventListener('input', e => {
+  const term = e.target.value.trim().toLowerCase();
+  if(!term){ renderList(algo); return; }
+  const filtered = algo.filter(a => (a.name + ' ' + a.desc).toLowerCase().includes(term));
+  renderList(filtered);
+});
+
+document.getElementById('shuffleBtn').addEventListener('click', () => {
+  // Fisher-Yates shuffle
+  const arr = [...algo];
+  for (let i = arr.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  renderList(arr);
+});
+
+document.getElementById('cheatsBtn').addEventListener('click', () => {
+  // open cheat sheet path (graceful fallback)
+  window.location.href = 'array/miniCheatSheet.html';
+});
+
+/* quick focus shortcut "/" */
+window.addEventListener('keydown', (e) => {
+  if(e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA'){
+    e.preventDefault();
+    q.focus();
+  }
+});
+
+/* -----------------------------
+   GSAP animations (ScrollTrigger)
+   ----------------------------- */
+gsap.registerPlugin(ScrollTrigger);
+
+/* 1) Masked rainbow heading: split into letters and animate background position on scroll */
+const headingEl = document.querySelector('.heading');
+function splitHeadingToChars(){
+  // take existing words, convert each char to span.char
+  const words = Array.from(headingEl.querySelectorAll('.word'));
+  headingEl.innerHTML = '';
+  words.forEach(w => {
+    const text = w.textContent.trim();
+    const wrapper = document.createElement('span');
+    wrapper.className = 'word';
+    [...text].forEach(ch => {
+      const sp = document.createElement('span');
+      sp.className = 'char';
+      sp.textContent = ch;
+      wrapper.appendChild(sp);
+    });
+    headingEl.appendChild(wrapper);
+    headingEl.appendChild(document.createTextNode(' '));
+  });
+}
+splitHeadingToChars();
+
+/* animate the gradient movement across the letters depending on scroll */
+gsap.to('.heading .char', {
+  backgroundPosition: "200% 0%",
+  ease: "none",
+  scrollTrigger: {
+    trigger: document.body,
+    start: "top top",
+    end: "bottom bottom",
+    scrub: 0.8
+  },
+  stagger: {
+    each: 0.02,
+    from: "center"
+  }
+});
+
+/* 2) entrance animation for cards: stagger from bottom with tilt */
+ScrollTrigger.batch('.card', {
+  onEnter: batch => {
+    gsap.fromTo(batch, {
+      autoAlpha: 0,
+      y: 30,
+      rotateX: 6,
+      transformOrigin: '50% 100% -40px'
+    }, {
+      duration: 0.9,
+      autoAlpha: 1,
+      y: 0,
+      rotateX: 0,
+      ease: "power3.out",
+      stagger: 0.06
+    });
+  },
+  start: "top 80%"
+});
+
+/* 3) subtle parallax for decorative SVG circles */
+gsap.to('svg.decor circle:nth-child(1)', {
+  yPercent: -10,
+  xPercent: 8,
+  ease: "none",
+  scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: true }
+});
+gsap.to('svg.decor circle:nth-child(2)', {
+  yPercent: 20,
+  xPercent: -12,
+  ease: "none",
+  scrollTrigger: { trigger: document.body, start: "top top", end: "bottom bottom", scrub: true }
+});
+
+/* 4) hover tilt effect for cards (pointer-follow small tilt) */
+function attachCardInteractions(){
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('pointermove', (e) => {
+      const rect = card.getBoundingClientRect();
+      const px = (e.clientX - rect.left) / rect.width;
+      const py = (e.clientY - rect.top) / rect.height;
+      const rx = (py - 0.5) * 6; // rotateX
+      const ry = (px - 0.5) * -8; // rotateY
+      gsap.to(card, {duration:0.35, rotateX: rx, rotateY: ry, rotateZ: 0.01, transformPerspective:800, ease: 'power3.out'});
+    });
+    card.addEventListener('pointerleave', () => {
+      gsap.to(card, {duration:0.65, rotateX:0, rotateY:0, ease:'elastic.out(1,0.6)'});
+    });
+    // subtle focus state for keyboard users
+    card.addEventListener('focus', () => gsap.to(card, {duration:0.25, scale:1.02, boxShadow: '0 22px 44px rgba(0,0,0,0.6)'}));
+    card.addEventListener('blur', () => gsap.to(card, {duration:0.25, scale:1, boxShadow: ''}));
+  });
+}
+
+/* call once initially */
+attachCardInteractions();
+
+/* 5) tiny floating bounce for hero right progress bar */
+gsap.to('#progressBar', {
+  y: -6,
+  repeat: -1,
+  yoyo: true,
+  duration: 2.3,
+  ease: 'sine.inOut'
+});
+
+/* 6) subtle scroll smoothing feel:
+   We can't require ScrollSmoother (paid), so create a small easing on wheel to soften jump using inertia simulation.
+   This is an optional enhancement: if user prefers reduced motion or device is touch, we skip it.
+*/
+(function softScroll(){
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  // only enable non-touch devices
+  const isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (isTouch) return;
+  let scrollTarget = window.scrollY;
+  let ticking = false;
+  const ease = 0.12;
+
+  window.addEventListener('wheel', (evt) => {
+    scrollTarget += evt.deltaY * 0.9;
+    scrollTarget = Math.max(0, Math.min(scrollTarget, document.documentElement.scrollHeight - window.innerHeight));
+    if (!ticking){
+      requestAnimationFrame(smoothStep);
+      ticking = true;
+    }
+  }, {passive:true});
+
+  function smoothStep(){
+    const current = window.scrollY;
+    const diff = scrollTarget - current;
+    if (Math.abs(diff) > 0.5){
+      window.scrollTo(0, current + diff * ease);
+      requestAnimationFrame(smoothStep);
+    } else {
+      ticking = false;
+      scrollTarget = window.scrollY;
+    }
+  }
+})();
+
+/* 7) Accessibility: add keyboard focus outlines for cards */
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'Tab') document.body.classList.add('show-focus');
+});
+</script>
+</body>
+</html>
