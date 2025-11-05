@@ -1,265 +1,299 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-	<title>Stack</title>
-	<style>
-		html, * {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-		}
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stack Visualizer (GSAP + Typewriter)</title>
 
-		body {
-			text-align: center;
-		}
+  <!-- GSAP -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
 
-		.grid {
-			width: 1000px;
-			position: relative;
-			height: 400px;
-			background: lightgreen;
-			margin: 40px auto;
-			display: flex;
-			flex-wrap: wrap;
-			outline: 1px solid red;
-		}
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: #0d1117;
+      color: #fff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding-top: 30px;
+      gap: 20px;
+      overflow-x: hidden;
+    }
 
-		p, p:nth-child(1) {
-			padding: 20px;
-			text-align: center;
-			font-family: ubuntu;
-			font-weight: bolder;
-			font-size: 20px;
-		}
+    h1 {
+      font-size: 32px;
+      color: #00ff88;
+      margin-bottom: 10px;
+    }
 
-		.stack__controllers {
-			max-width: 500px;
-			margin: auto;
-			display: flex;
-			justify-content: space-around;
-		}
+    .layout {
+      display: flex;
+      align-items: flex-start;
+      gap: 40px;
+    }
 
-		.stack__push, .stack__pop, .stack__peek {
-			padding: 10px 30px;
-		}
+    .intro {
+      width: 600px;
+      max-width: 90%;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 20px 25px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+      line-height: 1.6;
+      animation: fadeIn 1s ease forwards;
+    }
 
-		.stack__peek__input {
-			width: 60px;
-			padding: 10px;
-		}
+    .intro h2 {
+      color: #00ff88;
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
 
-		.color__scheme {
-			display: flex;
-			padding: 10px;
-			justify-content: space-between;
-			border: 1px solid lightgreen;
-			margin-right: 5px;
-		}
+    .intro p, .intro ul {
+      font-size: 15px;
+      color: #ddd;
+    }
 
-		.color__scheme > span:nth-child(1) {
-			height: 20px;
-			width: 20px;
-			padding: 5px;
-			margin-right: 20px;
-			background: lightgreen;
-		}
+    .intro ul {
+      margin-left: 20px;
+    }
 
+    .stack-container {
+      width: 160px;
+      height: 300px;
+      border: 2px dashed #00ff88;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column-reverse;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+      overflow: hidden;
+      padding: 10px;
+      background: rgba(255, 255, 255, 0.05);
+    }
 
-		.color__scheme > span:nth-child(2) {
-			font-weight: bolder;
-			color: gray;
-			margin: 0px 20px 0 0 ;
+    .stack-box {
+      width: 100px;
+      height: 40px;
+      background: #1f6feb;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 18px;
+      color: #fff;
+      box-shadow: 0 0 10px rgba(31, 111, 235, 0.4);
+    }
 
-		}
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+      justify-content: center;
+    }
 
-	</style>
-	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    button {
+      background: #00ff88;
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #00cc6a;
+      transform: scale(1.05);
+    }
+
+    input {
+      padding: 8px;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      width: 100px;
+      text-align: center;
+    }
+
+    .explanation {
+      width: 250px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 15px 20px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 255, 136, 0.3);
+      font-size: 15px;
+      line-height: 1.6;
+      color: #ddd;
+      box-shadow: 0 0 10px rgba(0, 255, 136, 0.1);
+      min-height: 80px;
+      overflow-wrap: break-word;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 <body>
-	<p>Stack</p>
-	<canvas class='grid' width='1000',height='400px'>
-		
-	</canvas>
+  <h1>Stack Visualizer (GSAP)</h1>
 
-	<div class="stack__controllers">
-		<div class="color__scheme">
-			<span></span>
-			<span>Top</span>
-		</div>
-		<button class="stack__push">PUSH</button>
-		<button class="stack__pop">POP</button>
-		<div>
-			<input type="number" class="stack__peek__input" placeholder="Peek Value" value="0" name="peek">
-			<button class="stack__peek">PEEK</button>
-		</div>		
-	</div>
+  <div class="intro">
+    <h2>What is a Stack?</h2>
+    <p>
+      A <b>Stack</b> is a linear data structure that follows the <b>LIFO (Last In, First Out)</b> principle.
+      It means the last element added to the stack is the first one to be removed.
+    </p>
 
-	<script>
+    <h2>Key Properties:</h2>
+    <ul>
+      <li>🔹 <b>push()</b> → Adds an element to the top of the stack.</li>
+      <li>🔹 <b>pop()</b> → Removes the topmost element.</li>
+      <li>🔹 <b>peek()</b> → Views the top element without removing it.</li>
+      <li>🔹 <b>isEmpty()</b> → Checks if the stack is empty.</li>
+    </ul>
 
-	</script>
-</body>
-</html>
+    <h2>Order Followed:</h2>
+    <p>Stack operates in <b>LIFO order</b> — Last In, First Out.</p>
+  </div>
 
+  <div class="layout">
+    <div>
+      <div class="stack-container" id="stackContainer"></div>
+      <div class="controls">
+        <input type="number" id="stackInput" placeholder="Enter value" />
+        <button onclick="push()">Push</button>
+        <button onclick="pop()">Pop</button>
+        <button onclick="peek()">Peek</button>
+        <button onclick="resetStack()">Reset</button>
+      </div>
+    </div>
 
-	<script>
-// MAIN
-	arr =[];
-	max = 100;
-	time_delay = 500;
-	canvas = document.querySelector('canvas');
-	max_width = canvas.width;
-	max_height = canvas.height;
+    <div class="explanation" id="explanation">
+      🧠 Perform an operation to see what happens!
+    </div>
+  </div>
 
-	stack_width = 200;
-	ctx = canvas.getContext("2d");
-	size = 10;
-	rect = {
-		width: 60,
-		height: 24
-	}
+  <script>
+    const stack = [];
+    const stackContainer = document.getElementById("stackContainer");
+    const explanationBox = document.getElementById("explanation");
 
-	init();
-	animate();
+    // Typewriter GSAP animation
+    function typeText(element, text) {
+      element.innerHTML = "";
+      const chars = text.split("");
+      chars.forEach((char, i) => {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.style.opacity = 0;
+        element.appendChild(span);
+        gsap.to(span, { opacity: 1, duration: 0.03, delay: i * 0.02 });
+      });
+    }
 
+    function explain(text) {
+      gsap.to(explanationBox, { opacity: 0, duration: 0.2, onComplete: () => {
+        typeText(explanationBox, text);
+        gsap.to(explanationBox, { opacity: 1, duration: 0.4 });
+      }});
+    }
 
-// utility
-	function randomize_an_array() {
-		arr = [];
-		stack = [];
-		for(let i=0; i<size; i++) {
-			arr.push(Math.floor(Math.random() * max + 1));
-		}
-	}
+    function push() {
+      const value = document.getElementById("stackInput").value;
+      if (!value) {
+        alert("Enter a value!");
+        return;
+      }
 
-	function init() {	
-			randomize_an_array();
-			create_stack();
-			document.querySelector(".stack__push").addEventListener("click", () => {
-				push();
-			})
-			
-			document.querySelector(".stack__pop").addEventListener("click", () => {
-				pop();
-			})
+      stack.push(value);
 
-			document.querySelector(".stack__peek").addEventListener("click", () => {
-				let val = +document.querySelector(".stack__peek__input").value;
-				peek(val);
-			})
+      const box = document.createElement("div");
+      box.className = "stack-box";
+      box.textContent = value;
+      stackContainer.appendChild(box);
 
-	}
+      gsap.from(box, { y: 100, opacity: 0, duration: 0.7, ease: "bounce.out" });
 
-	function create_stack() {
-		ctx.fillStyle = 'black';
-		ctx.fillRect(max_width - stack_width, 0, stack_width, max_height)
-		ctx.fillStyle = 'white';
-		ctx.fillRect(max_width - stack_width, max_height - rect.height / 2 - 3, stack_width, 1)
-		ctx.font = 'bold 15px ubuntu'	
-		ctx.fillText("STACK", max_width - stack_width / 2 - 15, max_height - 1);
-	}
+      document.getElementById("stackInput").value = "";
 
+      explain(`📦 <b>push(${value})</b> → Added <b>${value}</b> on top of the stack.`);
+    }
 
-	function clear(x1=0, y1=0, width=max_width, height=max_height) {
-			ctx.fillStyle = 'lightgreen';
-			ctx.fillRect(x1, y1, width, height)
-	}
+    function pop() {
+      if (stack.length === 0) {
+        alert("Stack Underflow!");
+        explain("⚠️ Stack is empty! Cannot pop any element.");
+        return;
+      }
 
-	function animate() {
-		clear(0, 0, max_width, max_height);
-		create_stack();
-		arr.forEach((e, i) => {
-			ctx.fillStyle = "black";	
-			ctx.fillRect(i * rect.width + i + 10, max_height/2, rect.width, rect.height);
-			ctx.fillStyle = 'white';
-			ctx.font = 'bold 15px ubuntu'
-			ctx.fillText(`${e}`, i * rect.width + i + rect.width/2 + 10, max_height/2 + rect.height * (3/4))
-			ctx.fillStyle = 'black';
-		})	
-		stack.forEach((e, i) => {
-			if(i == stack.length - 1) {
-				ctx.fillStyle = "lightgreen";					
-			}
-			else {
-				ctx.fillStyle = "white";	
+      const topValue = stack.pop();
+      const topBox = stackContainer.lastElementChild;
 
-			}
-			let h = max_height - rect.height - i*(rect.height/2) - i -4;
-			ctx.fillRect(max_width - stack_width + 5, h, stack_width - 10, rect.height / 2);
-			ctx.fillStyle = 'red';
-			ctx.font = 'bold 12px ubuntu'
-			ctx.fillText(`${e}`, max_width - stack_width / 2, h + rect.height/2 - 1)
-			ctx.fillStyle = 'black';
-		});
-	}
+      gsap.to(topBox, {
+        y: -80,
+        opacity: 0,
+        scale: 0.8,
+        duration: 0.5,
+        ease: "power2.in",
+        onComplete: () => topBox.remove()
+      });
 
-	function push() {
-		if(stack.length == size) {
-			alert("stack overflow");
-		}
-		else if(arr.length == 0) {
-			alert("No Element is present to push");
-			window.location.reload();
-		}
-		else {
-			stack.push(arr.shift());
-			animate();
-		}
-	}
+      explain(`🗑️ <b>pop()</b> → Removed <b>${topValue}</b> from top of the stack.`);
+    }
 
-	function pop() {
-		if(stack.length == 0) {
-			if(arr.length == 0) {
-				alert("Empty stack can't pop further");
-				window.location.reload();
-			}
-			else {
-				alert("Empty stack,  please push something to pop")
-			}
-		}
-		else {
-			stack.splice(stack.length - 1, 1);
-			animate();
-		}
-	}
+    function peek() {
+      if (stack.length === 0) {
+        alert("Stack is empty!");
+        explain("🔍 Stack is empty! No element to peek.");
+        return;
+      }
 
-	async function peek(val) {
-	
+      const topValue = stack[stack.length - 1];
+      const topBox = stackContainer.lastElementChild;
 
-		if(val < stack.length) {
-			let i = stack.length - val - 1;
-			let h = max_height - rect.height - i*(rect.height/2) - i -4;
-			await sleep(time_delay).then(() => {
-				glitter(h, stack[i], "red", "white");
-			})
-			await sleep(time_delay).then(() => {
-				if(i == stack.length - 1) {
-					glitter(h, stack[i], "lightgreen", "red");
-				}
-				else {
-					glitter(h, stack[i]);	
-				}
-			})
-		}
-		else {
-			alert("Peek value should be less than the stack size")
-		}
-	}
+      gsap.fromTo(topBox,
+        { boxShadow: "0 0 0px #00ff88" },
+        { boxShadow: "0 0 25px #00ff88", duration: 0.6, repeat: 1, yoyo: true }
+      );
 
-	function glitter(i, val, recta="white", text="red") {
-		let h = i;
-		ctx.fillStyle = recta;
-		ctx.fillRect(max_width - stack_width + 5, h, stack_width - 10, rect.height / 2);
-		ctx.fillStyle = text;
-		ctx.font = 'bold 12px ubuntu'
-		ctx.fillText(`${val}`, max_width - stack_width / 2, h + rect.height/2 - 1)
-		ctx.fillStyle = 'black';
-	}
+      explain(`👀 <b>peek()</b> → Top element is <b>${topValue}</b> (not removed).`);
+    }
 
+    function resetStack() {
+      if (stack.length === 0) {
+        explain("Stack is already empty!");
+        return;
+      }
 
-	function sleep(ms) {
-		return new Promise(resolve => setTimeout(resolve, ms));
-	}
-	</script>
+      stack.length = 0;
+      const boxes = document.querySelectorAll(".stack-box");
+
+      gsap.to(boxes, {
+        y: -50,
+        opacity: 0,
+        stagger: 0.1,
+        duration: 0.4,
+        onComplete: () => stackContainer.innerHTML = ""
+      });
+
+      explain("🔄 Stack has been reset. All elements cleared.");
+    }
+
+    // Intro Animations
+    gsap.from("h1", { opacity: 0, y: -20, duration: 1 });
+    gsap.from(".intro", { opacity: 0, x: -40, duration: 1, ease: "power2.out" });
+    gsap.from(".layout", { opacity: 0, x: 40, duration: 1, delay: 0.5, ease: "power2.out" });
+  </script>
 </body>
 </html>
