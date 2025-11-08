@@ -1,217 +1,494 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-	<title>Infix To Postfix</title>
-	<style>
-		html, * {
-			box-sizing: border-box;
-			margin: 0;
-			padding: 0;
-		}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Infix → Postfix — Animated Visualizer</title>
 
-		body {
-			text-align: center;
-		}
+<!-- Basic styles, friendly and readable -->
+<style>
+  :root{
+    --bg1: #e8fbf6;
+    --bg2: #d9f3f0;
+    --accent: #00796b;
+    --accent-2: #00a896;
+    --card: #ffffff;
+    --muted: #586069;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: Inter, "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    margin:0;
+    background:linear-gradient(180deg,var(--bg1),var(--bg2));
+    color:#123;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:32px;
+  }
 
-		.grid {
-			background: lightgreen;
-			margin: auto;
-		}
+  header{
+    text-align:center;
+    margin-bottom:22px;
+  }
+  header h1{
+    margin:0;
+    color:var(--accent);
+    font-size:28px;
+    letter-spacing:1px;
+  }
+  header p{margin-top:8px;color:var(--muted)}
 
-		p:nth-child(1) {
-			padding: 10px 20px;
-			text-align: center;
-			font-family: ubuntu;
-			font-weight: bolder;
-			font-size: 25px;
-			text-transform: uppercase;
-			color: gray;
-		}
+  .layout{
+    display:grid;
+    grid-template-columns: 1fr 380px;
+    gap:24px;
+    max-width:1200px;
+    margin:0 auto;
+    align-items:start;
+  }
 
-		.number, .evaluate {
-			padding: 5px 10px;
-		}
-		.number {
-			width: 300px;
-		}
+  /* Left visual area */
+  .visual-card{
+    background:var(--card);
+    border-radius:12px;
+    padding:18px;
+    box-shadow:0 10px 30px rgba(10,20,30,0.06);
+    min-height:520px;
+  }
 
-		.note {
-			padding: 5px;
-			margin-top: 5px;
-			background: pink;
-			display: inline-block;
-			color: black;
-		}
-	</style>
-	<meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  .controls{
+    display:flex;
+    gap:12px;
+    align-items:center;
+    margin-bottom:14px;
+    flex-wrap:wrap;
+  }
+
+  input[type="text"].expr{
+    padding:10px 12px;
+    border-radius:8px;
+    border:1px solid #e2e8ea;
+    width:320px;
+    font-size:15px;
+  }
+  button.run{
+    padding:10px 16px;
+    border-radius:8px;
+    border:none;
+    background:linear-gradient(180deg,var(--accent),var(--accent-2));
+    color:white;
+    font-weight:600;
+    cursor:pointer;
+  }
+  button.run:disabled{opacity:.6;cursor:not-allowed}
+
+  .speed{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    color:var(--muted);
+    font-size:13px;
+  }
+  .speed input[type="range"]{width:150px}
+
+  /* Canvas board and stack display */
+  .board{
+    position:relative;
+    display:flex;
+    gap:18px;
+    align-items:flex-start;
+  }
+
+  canvas#boardCanvas{
+    background: linear-gradient(180deg,#f7fffd,#f0fbfa);
+    border-radius:10px;
+    border:2px solid rgba(0,0,0,0.04);
+    box-shadow: inset 0 3px 12px rgba(0,0,0,0.02);
+  }
+
+  /* DOM-based stack area: easier to animate push/pop */
+  .stack-area{
+    width:220px;
+    min-height:360px;
+    background: linear-gradient(180deg,#ffffff,#f7fffd);
+    border-radius:10px;
+    padding:12px;
+    border:1px solid rgba(0,0,0,0.04);
+    position:relative;
+    display:flex;
+    flex-direction:column-reverse; /* stack grows upward visually */
+    align-items:center;
+    justify-content:flex-start;
+    overflow:hidden;
+  }
+  .stack-title{font-size:13px;color:var(--muted);margin-bottom:8px;position:absolute;top:12px}
+  .stack-block{
+    min-width:120px;
+    padding:8px 12px;
+    margin:6px 0;
+    border-radius:8px;
+    background:linear-gradient(180deg,#e6fff8,#d4f8ef);
+    border:1px solid rgba(0,120,100,0.08);
+    color:var(--accent);
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    box-shadow: 0 6px 14px rgba(0,120,100,0.06);
+  }
+
+  /* Right side: step log and explanation */
+  .sidebar{
+    background:var(--card);
+    border-radius:12px;
+    padding:16px;
+    box-shadow:0 10px 30px rgba(10,20,30,0.06);
+    height:520px;
+    overflow:auto;
+  }
+  .sidebar h3{margin:0 0 10px 0;color:var(--accent)}
+  .summary{
+    font-size:14px;
+    color:var(--muted);
+    margin-bottom:12px;
+  }
+  .step-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .step-item{
+    background:#fbfffe;
+    border-radius:8px;
+    padding:10px 12px;
+    border-left:4px solid #cde9e3;
+    font-size:14px;
+    box-shadow:0 6px 12px rgba(0,0,0,0.02);
+  }
+  .step-item .meta{font-size:12px;color:var(--muted);margin-top:6px}
+  .final-badge{
+    margin-top:12px;
+    background:linear-gradient(90deg,#00bfa5,#00d1a4);
+    color:white;
+    display:inline-block;
+    padding:8px 12px;
+    border-radius:8px;
+    font-weight:700;
+  }
+
+  /* responsive */
+  @media (max-width:980px){
+    .layout{grid-template-columns:1fr}
+    .stack-area{width:100%;order:3}
+  }
+</style>
 </head>
 <body>
-	<p>Infix To Postfix</p>
-	<canvas class='grid' width="1000" height="550">
-		
-	</canvas>
-	<div>
-		<input class="number" placeholder="Infix expression"></input>
-		<button class="evaluate">Evaluate</button>
-	</div>
-	<div class="note">
-		<b>Note: </b>Infix expression should only contain &nbsp;&nbsp;&nbsp;<b>a, b, ^, /, *, +, -, (,  )</b>
-	</div>
-	<script>
 
-// Main
-	let ctx = document.querySelector("canvas").getContext("2d");
-	let time_delay = 1000;
-	let str = "ab^/*+-()";
-	let priority = {
-		"(": 0, 
-		"+": 1,
-		"-": 1,
-		"/": 2,
-		"*": 2,
-		"^": 3
-	}
-	init();
-// Utility
+<header>
+  <h1>Infix → Postfix Visualizer</h1>
+  <p>Animated, step-by-step conversion using a stack. Great for beginner DSA students.</p>
+</header>
 
-	function init() {
-		add_listeners();
-	}
+<div class="layout">
 
-	// TESTCASE ((a+b)/(a-b)/(a*b))
-	function add_listeners() {
-		document.querySelector(".evaluate").addEventListener("click", () => {
-			val = document.querySelector(".number").value;
-			
-			// FILTERING THE STRING
-			if(val.length > 20 || val.length <= 0){
-				alert("keep the length of expression less then 21 and greater than 0");
-				return;
-			}
-			for(let i=0; i<val.length; i++) {
-				let count = 0;
-				for(let j =0; j<str.length; j++) {
-					if(val[i] == str[j]) {
-						count++; break;
-					}
-				}
-				if(count == 0) {
-					alert("Unknown symbol detected");
-					return;
-				}
-			}
-			document.querySelector(".evaluate").disabled = true;
-			infixToPrefix(val);
-		})
-	}
-	async function drawAll(i, string, stack, prefix) {
-		height = ctx.canvas.height / 20;
-		x = 0;
-		y = i * height;
-		ctx.beginPath();
-		ctx.fillStyle = "black";
-		ctx.fillRect(x, y, 100, height);
-		ctx.fillStyle = "white";
-		ctx.strokeStyle = "lightgreen";
-		ctx.strokeRect(x, y, 100, height);
-		ctx.font = "bolder 12px ubuntu"
-		if(string.length == 0)
-			ctx.fillText("", x + 100 / 2, y + height / 2);
+  <!-- Left: Visual area -->
+  <section class="visual-card" id="visualCard">
+    <div class="controls" aria-hidden="false">
+      <input class="expr" id="expr" placeholder="Type infix expression (e.g. (a+b)/(a-b))" value="(a+b)/(a-b)/(a*b)">
+      <button class="run" id="runBtn">Start</button>
 
-		else
-			ctx.fillText(string[i], x + 100 / 2, y + height / 2);
+      <div class="speed" title="Animation speed">
+        <label style="font-size:13px;color:var(--muted)">Speed</label>
+        <input id="speed" type="range" min="0.25" max="2" step="0.05" value="1">
+      </div>
+    </div>
 
-		w = (ctx.canvas.width - 300) / 20;
+    <div class="board" style="margin-top:6px;">
+      <!-- Canvas board for text read/postfix/stack text -->
+      <canvas id="boardCanvas" width="700" height="360" style="border-radius:10px"></canvas>
 
-		for(let i=0; i<20; i++) {
-			ctx.fillStyle = "red";
-			ctx.fillRect(100 + i*w, y, w, height);
-			ctx.strokeStyle = "lightgreen";
-			ctx.strokeRect(100 + i*w, y, w, height);
-		}
+      <!-- Stack area (DOM) — blocks animate push/pop -->
+      <div class="stack-area" id="stackArea" aria-live="polite">
+        <div class="stack-title">Stack (top at top)</div>
+        <!-- stack-block elements will be appended here -->
+      </div>
+    </div>
+  </section>
 
-		for(let i=0; i<stack.length; i++) {
-			ctx.fillStyle = "white";
-			ctx.font = "bolder 12px ubuntu"
-			ctx.fillText(stack[i], 100 + i*w + w / 2, y + height / 2);
-		}
-		ctx.fillStyle = "black";
-		ctx.fillRect(ctx.canvas.width - 200, y, 200, height);
-		ctx.fillStyle = "white";
-		ctx.strokeStyle = "lightgreen";
-		ctx.strokeRect(ctx.canvas.width - 200, y, 200, height)
-		ctx.font = "bolder 12px ubuntu"
-		ctx.fillText(prefix, ctx.canvas.width - 200 + 50, y + height / 2);
-		ctx.closePath();
-	}
+  <!-- Right: Step-by-step log -->
+  <aside class="sidebar" id="sidebar">
+    <h3>Step-by-step Summary</h3>
+    <div class="summary">Each action is logged as it happens. Watch the stack on the left and the postfix output on the canvas.</div>
 
-	async function infixToPrefix(string) {
-		prefix = "";
-		stack = [];
-		let i;
-		for(i=0; i<string.length; i++) {
-			let symbol = string[i];
-			if(symbol == 'a' || symbol == 'b') {
-				prefix += symbol;
-			}
-			else if(stack.length == 0) {
-				stack.push(symbol);
-			}
-			else if(symbol == "(") {
-				stack.push("(");
-			}
-			else if(symbol == ")") {
-				while(stack[stack.length - 1] != "(") {
-					prefix += stack.pop();
-				}
-				stack.pop();
-			}
-			else{
-				if(priority[symbol] < priority[stack[stack.length - 1]]) {
-					prefix += stack.pop();
-					stack.push(symbol);
-				}
-				else if(priority[symbol] > priority[stack[stack.length - 1]]) {
-					stack.push(symbol);
-				}
-				else {
-					// CHECK ASSOCIATIVITY BUT ALL SYMBOLS IN OUR CASE HAVE ASSOCIATY L ----> R
-					while(stack.length != 0 && priority[symbol] == priority[stack[stack.length - 1]]) {
-						prefix += stack.pop();
-					}
-					if(stack.length == 0) {
-						stack.push(symbol);
-					}
-					if(priority[symbol] < priority[stack[stack.length - 1]]) {
-						prefix += stack.pop();
-						stack.push(symbol);
-					}
-					else if(priority[symbol] > priority[stack[stack.length - 1]]) {
-						stack.push(symbol);
-					}
-				}
-			}
-			await sleep(time_delay).then(() => {
-				drawAll(i, string, stack, prefix);
-			})
-		}
+    <div class="step-list" id="stepList" role="log" aria-live="polite"></div>
 
-		while(stack.length != 0) {
-			prefix += stack.pop();
-			await sleep(time_delay).then(() => {
-				drawAll(i, "", stack, prefix);
-			})
-			i++
-		}
-	}
+    <div id="finalArea" style="margin-top:14px"></div>
+  </aside>
 
-	function sleep(ms) {
-		return new Promise(resolve => setTimeout(resolve, ms));
-	}
+</div>
 
-	</script>
+<!-- GSAP + ScrollTrigger CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+/*
+  Full interactive conversion:
+  - Step narration appended to sidebar
+  - DOM stack elements animate in/out
+  - Canvas shows "Reading", "Stack (text)", "Postfix"
+  - Speed slider controls delays
+*/
+
+gsap.registerPlugin(ScrollTrigger);
+
+/* ---------- Utility & UI refs ---------- */
+const canvas = document.getElementById('boardCanvas');
+const ctx = canvas.getContext('2d');
+const runBtn = document.getElementById('runBtn');
+const exprInput = document.getElementById('expr');
+const stepList = document.getElementById('stepList');
+const stackArea = document.getElementById('stackArea');
+const speedInput = document.getElementById('speed');
+const finalArea = document.getElementById('finalArea');
+
+const VALID = "ab^/*+-()";
+const PRIORITY = { "(": 0, "+": 1, "-": 1, "/": 2, "*": 2, "^": 3 };
+
+/* Canvas drawing helper */
+function drawBoard(reading, stackText, postfix) {
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.font = "600 16px Inter, Poppins, sans-serif";
+  ctx.fillStyle = "#056a62";
+  ctx.fillText("Reading  →  " + (reading || ""), 18, 40);
+  ctx.fillStyle = "#0b6b5b";
+  ctx.fillText("Stack (text): " + (stackText || ""), 18, 80);
+  ctx.fillStyle = "#0b6b5b";
+  ctx.fillText("Postfix → " + (postfix || ""), 18, 120);
+
+  // Nice visual: draw a separator and box for postfix characters
+  ctx.strokeStyle = "rgba(0,120,100,0.08)";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(10, 140, canvas.width - 20, 200);
+
+  // Display postfix characters as badges
+  ctx.font = "600 18px Inter, sans-serif";
+  for(let i=0;i<postfix.length;i++){
+    const px = 30 + i*38;
+    const py = 220;
+    // subtle rounded rect
+    ctx.fillStyle = "#ecfff9";
+    roundRect(ctx, px-8, py-28, 36, 36, 8, true, false);
+    ctx.fillStyle = "#00796b";
+    ctx.fillText(postfix[i], px, py);
+  }
+}
+
+/* draw rounded rect helper */
+function roundRect(ctx, x, y, width, height, radius, fill, stroke) {
+  if (typeof stroke === 'undefined') { stroke = true; }
+  if (typeof radius === 'undefined') { radius = 5; }
+  ctx.beginPath();
+  ctx.moveTo(x + radius, y);
+  ctx.arcTo(x + width, y, x + width, y + height, radius);
+  ctx.arcTo(x + width, y + height, x, y + height, radius);
+  ctx.arcTo(x, y + height, x, y, radius);
+  ctx.arcTo(x, y, x + width, y, radius);
+  ctx.closePath();
+  if (fill) { ctx.fill(); }
+  if (stroke) { ctx.stroke(); }
+}
+
+/* Add step to sidebar with animation */
+function addStep(message, meta = "") {
+  const el = document.createElement('div');
+  el.className = 'step-item';
+  el.innerHTML = `<div>${escapeHtml(message)}</div>${meta ? `<div class="meta">${escapeHtml(meta)}</div>` : ''}`;
+  stepList.prepend(el);
+  gsap.from(el, {opacity:0, y:10, duration:0.45, ease:"power2.out"});
+}
+
+/* Escape for safety */
+function escapeHtml(str){ return String(str).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* Stack DOM helpers */
+function pushVisual(sym) {
+  const block = document.createElement('div');
+  block.className = 'stack-block';
+  block.textContent = sym;
+  // create invisible then animate upward into place
+  block.style.opacity = 0;
+  block.style.transform = 'translateY(20px) scale(.98)';
+  stackArea.appendChild(block);
+  // animate from bottom/pop effect
+  gsap.to(block, {opacity:1, y:0, translateY:0, scale:1, duration:0.7, ease:"bounce.out"});
+  return block;
+}
+function popVisual() {
+  const last = stackArea.querySelector('.stack-block:last-child');
+  if(!last) return;
+  gsap.to(last, {y:-40, opacity:0, scale:.9, duration:0.45, ease:"power1.in", onComplete: () => last.remove()});
+}
+
+/* set visual stack text from current stack array */
+function getStackText(stack) { return stack.join(' '); }
+
+/* Sleep controlled by speed slider (returns ms) */
+function getDelay() {
+  const speed = Number(speedInput.value) || 1;
+  // base delay 900ms scaled by 1/speed. faster speed -> smaller delay.
+  return Math.round(900 / speed);
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+/* ---------- Main conversion logic with animations ---------- */
+async function runConversion(raw) {
+  stepList.innerHTML = '';
+  finalArea.innerHTML = '';
+  // sanitize
+  const expr = raw.trim();
+  if(expr.length === 0 || expr.length > 40){
+    alert('Expression length must be 1..40');
+    return;
+  }
+  for(const ch of expr){
+    if(!VALID.includes(ch)){
+      alert('Invalid character: ' + ch);
+      return;
+    }
+  }
+
+  // Auto scroll to visual card smoothly
+  gsap.to(window, {duration:0.9, scrollTo: document.getElementById('visualCard')});
+
+  // Variables
+  let postfix = "";
+  let stack = [];
+  // clear existing visual stack
+  const existingBlocks = stackArea.querySelectorAll('.stack-block');
+  existingBlocks.forEach(b => b.remove());
+
+  drawBoard('', '', '');
+
+  addStep('Start conversion for: ' + expr);
+
+  for(let i=0;i<expr.length;i++){
+    const symbol = expr[i];
+    // highlight reading char
+    drawBoard(symbol, getStackText(stack), postfix);
+    addStep(`Reading character '${symbol}'`, `Index ${i}`);
+
+    await sleep(getDelay() * 0.85);
+
+    if(symbol === 'a' || symbol === 'b'){
+      postfix += symbol;
+      addStep(`Operand '${symbol}' appended to postfix`, `Postfix now: ${postfix}`);
+      // small flash animation on postfix area
+      gsap.fromTo(canvas, {boxShadow:'0 0 0 rgba(0,0,0,0)'}, {boxShadow:'0 10px 40px rgba(0,160,120,0.08)', duration:0.5, yoyo:true, repeat:1});
+    }
+    else if(symbol === '('){
+      stack.push(symbol);
+      pushVisual(symbol);
+      addStep(`Pushed '(' onto stack`);
+    }
+    else if(symbol === ')'){
+      addStep(`Encountered ')', pop until '('`);
+      // pop until '('
+      while(stack.length && stack[stack.length-1] !== '('){
+        const popped = stack.pop();
+        postfix += popped;
+        addStep(`Popped '${popped}' from stack and appended to postfix`, `Postfix now: ${postfix}`);
+        popVisual();
+        await sleep(getDelay() * 0.9);
+        drawBoard(symbol, getStackText(stack), postfix);
+      }
+      // pop the '('
+      if(stack.length && stack[stack.length-1] === '('){
+        stack.pop();
+        // remove '(' visual
+        popVisual();
+        addStep(`Removed matching '(' from stack`);
+      } else {
+        addStep('Warning: mismatched parentheses detected');
+      }
+    }
+    else {
+      // operator case: pop while top has higher or equal precedence
+      addStep(`Operator '${symbol}' encountered — compare precedence with stack top`);
+      while(stack.length && PRIORITY[symbol] <= PRIORITY[stack[stack.length-1]]){
+        const top = stack[stack.length-1];
+        if(top === '(') break;
+        const popped = stack.pop();
+        postfix += popped;
+        addStep(`Popped '${popped}' from stack (higher/equal precedence) -> appended to postfix`, `Postfix now: ${postfix}`);
+        popVisual();
+        await sleep(getDelay() * 0.9);
+        drawBoard(symbol, getStackText(stack), postfix);
+      }
+      // push current operator
+      stack.push(symbol);
+      pushVisual(symbol);
+      addStep(`Pushed operator '${symbol}' onto stack`);
+    }
+
+    // update board after each char
+    drawBoard(symbol, getStackText(stack), postfix);
+    await sleep(getDelay());
+  }
+
+  // empty remaining stack
+  addStep('Input consumed. Popping remaining operators from stack.');
+  while(stack.length){
+    const top = stack.pop();
+    if(top === '(' || top === ')'){
+      // mismatched paren
+      addStep(`Skipping unmatched parenthesis '${top}'`);
+      popVisual();
+      await sleep(getDelay()*0.75);
+      drawBoard('', getStackText(stack), postfix);
+      continue;
+    }
+    postfix += top;
+    addStep(`Popped '${top}' from stack -> appended to postfix`, `Postfix now: ${postfix}`);
+    popVisual();
+    drawBoard('', getStackText(stack), postfix);
+    await sleep(getDelay());
+  }
+
+  drawBoard('', '', postfix);
+  addStep('Conversion complete.');
+  finalArea.innerHTML = `<div class="final-badge">Final Postfix: ${escapeHtml(postfix)}</div>`;
+  gsap.from(finalArea, {opacity:0, y:10, duration:0.6});
+  // little celebration pulse
+  gsap.fromTo(canvas, {scale:0.998},{scale:1, duration:0.35, repeat:2, yoyo:true, ease:"power1.inOut"});
+}
+
+/* ---------- Event wiring ---------- */
+runBtn.addEventListener('click', async () => {
+  runBtn.disabled = true;
+  await runConversion(exprInput.value || '');
+  runBtn.disabled = false;
+});
+
+// keyboard: Enter triggers run
+exprInput.addEventListener('keydown', e => {
+  if(e.key === 'Enter') runBtn.click();
+});
+
+/* ---------- Small UX animations on load via GSAP ---------- */
+gsap.from('header h1', {opacity:0, y:-18, duration:0.7});
+gsap.from('.visual-card', {opacity:0, y:20, duration:0.8, delay:0.2});
+gsap.from('.sidebar', {opacity:0, y:20, duration:0.8, delay:0.35});
+gsap.from('.controls .expr', {opacity:0, x:-12, duration:0.6, delay:0.4});
+gsap.from('.controls .run', {opacity:0, x:12, duration:0.6, delay:0.45});
+
+/* Helper: initial blank board */
+drawBoard('', '', '');
+
+/* Expose minor helpers for future customization in console */
+window._infixVisualizer = {drawBoard, runConversion};
+
+</script>
 </body>
 </html>
-
-<!-- hi mau name -->
